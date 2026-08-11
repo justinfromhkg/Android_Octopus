@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Pembaca Kad Transit Pelbagai</string>
+    <string name="app_language">Bahasa aplikasi</string>
     <string name="hero_title">Satu telefon. Pelbagai kad transit.</string>
     <string name="hero_subtitle">Baca kad fizikal yang disokong tanpa menghantar data ke mana-mana.</string>
     <string name="select_card_title">Pilih kad anda</string>
-    <string name="select_card_description">Wajib: pilih kad yang tepat sebelum mengimbas supaya aplikasi menggunakan protokol NFC baca sahaja yang betul.</string>
+    <string name="select_card_description">Pengesanan automatik ialah pilihan lalai. Pilih profil tertentu hanya untuk kad terlindung yang tidak dapat dikenal pasti melalui data awam.</string>
+    <string name="automatic_detection">Pengesanan automatik</string>
     <string name="choose_card">Pilih kad transit</string>
     <string name="no_card_selected">Tiada kad dipilih</string>
     <string name="octopus_card_generation">Generasi kad Octopus</string>
@@ -14,13 +16,14 @@
     <string name="card_name_format">%1$s · %2$s</string>
     <string name="card_selection_format">%1$s — %2$s</string>
     <string name="how_to_scan">Cara mengimbas</string>
-    <string name="scan_step_1">Pilih sistem kad yang sepadan.</string>
+    <string name="scan_step_1">Kekalkan pengesanan automatik atau pilih profil manual apabila diperlukan.</string>
     <string name="scan_step_2">Ketik butang Imbas.</string>
     <string name="scan_step_3">Pegang kad fizikal tanpa bergerak pada antena NFC telefon.</string>
     <string name="button_reading">Sedang membaca…</string>
     <string name="button_waiting">Menunggu kad…</string>
     <string name="button_select_first">Pilih kad dahulu</string>
     <string name="button_scan_card">Imbas %1$s</string>
+    <string name="button_scan_automatic">Imbas dan kesan kad</string>
     <string name="open_nfc_settings">Buka tetapan NFC</string>
     <string name="privacy_notice">Baca sahaja: tiada tambah nilai, pembayaran, tekaan kunci pengesahan atau penulisan kad. Hasil kekal pada skrin ini dan tidak dimuat naik.</string>
 
@@ -34,6 +37,10 @@
     <string name="status_reading">Membaca %1$s…</string>
     <string name="status_read_success">%1$s berjaya dibaca.</string>
     <string name="status_read_failed">Kad tidak dapat dibaca. Semak jenis kad yang dipilih, pegang tanpa bergerak dan cuba lagi.</string>
+    <string name="status_auto_ready">Pengesanan automatik sedia. Ketik Imbas.</string>
+    <string name="status_hold_any_card">Letakkan kad transit rata pada antena NFC di belakang telefon.</string>
+    <string name="status_auto_reading">Mengesan semua aplikasi kad yang serasi…</string>
+    <string name="status_auto_read_success">Pengesanan selesai: %1$d aplikasi kad ditemui.</string>
 
     <string name="estimated_balance">Anggaran baki</string>
     <string name="balance">Baki</string>
@@ -48,6 +55,7 @@
     <string name="balance_reason_clipper">Fail baki Clipper DESFire klasik yang awam tidak ditemui. Kad berasaskan akaun yang lebih baharu mungkin menggunakan format lain.</string>
     <string name="balance_reason_oyster">Data baki Oyster dilindungi. Kad generasi pertama memerlukan kunci sektor pengendali, manakala kad DESFire yang lebih baharu tidak menyediakan fail baki awam.</string>
     <string name="balance_reason_not_exposed">Generasi kad ini tidak menyediakan rekod baki awam yang dijangka.</string>
+    <string name="balance_reason_automatic_unknown">Kad dikesan tetapi tiada aplikasi awam yang mengenal pasti pengeluarnya secara unik. Pilih profil manual jika anda mengetahui jenis kad.</string>
 
     <string name="capability_estimated">Anggaran baki dan pengecam kad</string>
     <string name="capability_issuer_keys">Pengecam kad sahaja; sektor baki memerlukan kunci pengeluar</string>
@@ -57,10 +65,12 @@
     <string name="capability_china_variant">Baki pada kad CPU, City Union atau T-Union yang serasi; sandaran pengecam</string>
     <string name="capability_china_public">Baki awam, butiran kad dan transaksi terkini pada kad T-Union yang serasi</string>
     <string name="capability_classic_clipper">Baki pada kad dengan aplikasi Clipper klasik yang awam</string>
+    <string name="capability_automatic">Menguji semua aplikasi awam baca sahaja yang serasi dan memaparkan setiap teras yang dikesan</string>
     <string name="capability_korean_public">Baki awam, butiran kad dan transaksi terkini pada kad T-money yang serasi</string>
     <string name="capability_oyster_protected">Generasi kad dan metadata cip yang selamat; data baki Oyster dilindungi</string>
 
     <string name="selected_profile">Profil dipilih</string>
+    <string name="multiple_applications_detected">%1$d aplikasi kad dikesan</string>
     <string name="detected_card">Kad / aplikasi dikesan</string>
     <string name="nfc_identifier">Pengecam NFC</string>
     <string name="card_number">Nombor kad</string>
@@ -129,4 +139,5 @@
     <string name="region_macau">Macau</string>
     <string name="region_malaysia">Malaysia</string>
     <string name="region_london_uk">London, United Kingdom</string>
+    <string name="region_supported_cards">Semua rantau yang disokong</string>
 </resources>

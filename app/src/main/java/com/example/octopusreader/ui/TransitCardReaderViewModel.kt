@@ -11,14 +11,14 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 data class TransitCardReaderUiState(
-    val selectedProfile: TransitCardProfile? = null,
+    val selectedProfile: TransitCardProfile? = TransitCardProfile.AUTOMATIC,
     val octopusBalanceBasis: OctopusBalanceBasis = OctopusBalanceBasis.PHYSICAL_PRE_2017,
     val nfcSupported: Boolean = true,
     val nfcEnabled: Boolean = true,
     val isWaitingForCard: Boolean = false,
     val isReading: Boolean = false,
-    val status: ReaderStatus = ReaderStatus.SELECT_CARD,
-    val lastScan: TransitCardScan? = null,
+    val status: ReaderStatus = ReaderStatus.CARD_SELECTED,
+    val lastScans: List<TransitCardScan> = emptyList(),
 )
 
 enum class ReaderStatus {
@@ -45,7 +45,7 @@ class TransitCardReaderViewModel : ViewModel() {
             selectedProfile = profile,
             isWaitingForCard = false,
             status = ReaderStatus.CARD_SELECTED,
-            lastScan = null,
+            lastScans = emptyList(),
         )
     }
 
@@ -54,7 +54,7 @@ class TransitCardReaderViewModel : ViewModel() {
         if (previous.isReading || previous.isWaitingForCard) return
         _uiState.value = previous.copy(
             octopusBalanceBasis = basis,
-            lastScan = null,
+            lastScans = emptyList(),
         )
     }
 
@@ -117,14 +117,14 @@ class TransitCardReaderViewModel : ViewModel() {
                 isWaitingForCard = false,
                 isReading = false,
                 status = ReaderStatus.READ_SUCCESS,
-                lastScan = result.scan,
+                lastScans = result.scans,
             )
 
             is CardReadResult.Failure -> previous.copy(
                 isWaitingForCard = false,
                 isReading = false,
                 status = ReaderStatus.READ_FAILED,
-                lastScan = null,
+                lastScans = emptyList(),
             )
         }
     }

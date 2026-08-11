@@ -10,6 +10,13 @@ enum class TransitCardProfile(
     val technologyHint: String,
     val balanceReadSupport: BalanceReadSupport,
 ) {
+    AUTOMATIC(
+        displayName = "Automatic detection",
+        localName = null,
+        region = "Supported regions",
+        technologyHint = "NFC-A / NFC-B / NFC-F / ISO-DEP",
+        balanceReadSupport = BalanceReadSupport.AUTOMATIC,
+    ),
     OCTOPUS(
         displayName = "Octopus",
         localName = "八達通",
@@ -45,23 +52,9 @@ enum class TransitCardProfile(
         technologyHint = "ISO-DEP / KS X 6924",
         balanceReadSupport = BalanceReadSupport.KOREAN_PUBLIC_PURSE,
     ),
-    SUICA(
-        displayName = "Suica",
-        localName = "スイカ",
-        region = "Japan",
-        technologyHint = "FeliCa / NFC-F",
-        balanceReadSupport = BalanceReadSupport.PUBLIC_FELICA,
-    ),
-    PASMO(
-        displayName = "PASMO",
-        localName = "パスモ",
-        region = "Japan",
-        technologyHint = "FeliCa / NFC-F",
-        balanceReadSupport = BalanceReadSupport.PUBLIC_FELICA,
-    ),
-    ICOCA(
-        displayName = "ICOCA",
-        localName = "イコカ",
+    JAPAN_TRANSIT_IC(
+        displayName = "Japan Transit IC",
+        localName = "交通系ICカード",
         region = "Japan",
         technologyHint = "FeliCa / NFC-F",
         balanceReadSupport = BalanceReadSupport.PUBLIC_FELICA,
@@ -118,6 +111,7 @@ enum class TransitCardProfile(
 }
 
 enum class BalanceReadSupport {
+    AUTOMATIC,
     ESTIMATED,
     ISSUER_KEYS,
     PROTECTED_FORMAT,
@@ -223,6 +217,10 @@ data class TransitCardScan(
 )
 
 sealed interface CardReadResult {
-    data class Success(val scan: TransitCardScan) : CardReadResult
+    data class Success(val scans: List<TransitCardScan>) : CardReadResult {
+        init {
+            require(scans.isNotEmpty()) { "A successful read must contain at least one scan." }
+        }
+    }
     data class Failure(val message: String) : CardReadResult
 }

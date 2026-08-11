@@ -17,11 +17,9 @@ object TransitCardReader {
     fun read(tag: Tag, request: TransitReadRequest): CardReadResult = try {
         val profile = request.profile
         when (profile) {
+            TransitCardProfile.AUTOMATIC -> readAutomatically(tag, request.octopusBalanceBasis)
             TransitCardProfile.OCTOPUS -> readOctopus(tag, request.octopusBalanceBasis)
-            TransitCardProfile.SUICA,
-            TransitCardProfile.PASMO,
-            TransitCardProfile.ICOCA,
-            -> readJapaneseIc(tag, profile)
+            TransitCardProfile.JAPAN_TRANSIT_IC -> readJapaneseIc(tag)
             TransitCardProfile.EZLINK -> readCepas(tag)
             TransitCardProfile.T_MONEY -> readTMoney(tag)
             TransitCardProfile.T_UNION,
@@ -45,6 +43,53 @@ object TransitCardReader {
         CardReadResult.Failure("The card could not be read. Keep it against the phone and try again.")
     } catch (error: IllegalArgumentException) {
         CardReadResult.Failure(error.message ?: "The card returned data in an unexpected format.")
+    }
+
+    private fun readAutomatically(
+        tag: Tag,
+        octopusBalanceBasis: OctopusBalanceBasis,
+    ): CardReadResult {
+        val scans = mutableListOf<TransitCardScan>()
+
+        if (NfcF.get(tag) != null) {
+            scans += probe { readOctopus(tag, octopusBalanceBasis) }
+            scans += probe { readJapaneseIc(tag) }
+        }
+        if (IsoDep.get(tag) != null) {
+            scans += probe { readTMoney(tag, allowIdentificationFallback = false) }
+            scans += probe { readChinaTransit(tag, TransitCardProfile.AUTOMATIC) }
+            scans += probe { readCepas(tag, allowIdentificationFallback = false) }
+            scans += probe { readClipper(tag, allowIdentificationFallback = false) }
+        }
+
+        val distinctScans = scans.distinctBy { scan ->
+            listOf(scan.selectedProfile.name, scan.protocol, scan.cardNumber.orEmpty())
+        }
+        return if (distinctScans.isNotEmpty()) {
+            CardReadResult.Success(distinctScans)
+        } else {
+            readIdentificationOnly(
+                tag = tag,
+                profile = TransitCardProfile.AUTOMATIC,
+                detectedName = "Unidentified NFC transit card",
+                extraNote = "No uniquely identifiable public transit application was found. Choose a manual profile if you know the card type.",
+            )
+        }
+    }
+
+    private inline fun probe(block: () -> CardReadResult): List<TransitCardScan> = try {
+        when (val result = block()) {
+            is CardReadResult.Success -> result.scans
+            is CardReadResult.Failure -> emptyList()
+        }
+    } catch (error: TagLostException) {
+        throw error
+    } catch (error: SecurityException) {
+        throw error
+    } catch (_: IOException) {
+        emptyList()
+    } catch (_: IllegalArgumentException) {
+        emptyList()
     }
 
     private fun readOctopus(
@@ -135,6 +180,14 @@ object TransitCardReader {
                 note = "The selected Octopus convenience-limit basis was applied to this read-only community-decoded estimate.",
             )
         } catch (error: OctopusProtocolException) {
+            if (
+                octopusPolling == null &&
+                availableSystemCodes.none { it.contentEquals(OctopusProtocol.systemCode) }
+            ) {
+                return CardReadResult.Failure(
+                    error.message ?: "The Octopus FeliCa system was not found.",
+                )
+            }
             success(
                 tag = tag,
                 profile = TransitCardProfile.OCTOPUS,
@@ -174,60 +227,91 @@ object TransitCardReader {
         }
     }
 
-    private fun readJapaneseIc(tag: Tag, profile: TransitCardProfile): CardReadResult {
+    private fun readJapaneseIc(tag: Tag): CardReadResult {
         val nfcF = NfcF.get(tag)
             ?: return CardReadResult.Failure("Japanese IC cards require NFC-F (FeliCa).")
-        val idm = tag.id
-        if (idm.size != 8) {
-            return CardReadResult.Failure("The card returned an invalid FeliCa identifier.")
-        }
-
-        val systemCode = nfcF.systemCode
-        val expectedSystem = byteArrayOf(0x00, JapaneseIcProtocol.SYSTEM_CODE.toByte())
-        if (!systemCode.contentEquals(expectedSystem)) {
-            return CardReadResult.Failure(
-                "This is not a compatible Japanese transit IC card (system ${systemCode.toUpperHex()}).",
-            )
-        }
+        val discoverySystemCode = nfcF.systemCode
+        var japanesePolling: FelicaPollingData? = null
 
         return try {
             nfcF.connect()
             nfcF.timeout = 3_000
+            val polling = FelicaProtocol.parsePollingResponse(
+                response = nfcF.transceive(
+                    FelicaProtocol.buildPollingCommand(JapaneseIcProtocol.SYSTEM_CODE),
+                ),
+                expectedSystemCode = JapaneseIcProtocol.SYSTEM_CODE,
+            )
+            japanesePolling = polling
             val command = FelicaProtocol.buildReadCommand(
-                idm = idm,
+                idm = polling.idm,
                 serviceCode = JapaneseIcProtocol.HISTORY_SERVICE_CODE,
             )
-            val block = FelicaProtocol.parseReadResponse(nfcF.transceive(command), idm)
+            val block = FelicaProtocol.parseReadResponse(nfcF.transceive(command), polling.idm)
             success(
                 tag = tag,
-                profile = profile,
-                detectedName = profile.displayName,
+                profile = TransitCardProfile.JAPAN_TRANSIT_IC,
+                detectedName = "Japanese interoperable transit IC",
+                cardId = polling.idm,
                 protocol = "FeliCa service 090F",
                 balance = TransitBalance(
                     currencyCode = "JPY",
                     amountMinor = JapaneseIcProtocol.decodeLatestBalanceYen(block),
                     fractionDigits = 0,
                 ),
-                systemCode = systemCode.toUpperHex(),
+                systemCode = "%04X".format(polling.systemCode),
                 rawData = block,
-                note = "Read using the selected ${profile.displayName} profile. These interoperable cards share a common NFC system, so the card itself may not confirm the exact brand.",
+                details = listOf(
+                    TransitCardDetail(
+                        type = TransitCardDetailType.MANUFACTURER_PARAMETERS,
+                        value = polling.manufacturerParameters.toUpperHex(),
+                        monospace = true,
+                    ),
+                    TransitCardDetail(
+                        type = TransitCardDetailType.ANDROID_DISCOVERY_SYSTEM,
+                        value = discoverySystemCode.toUpperHex(),
+                        monospace = true,
+                    ),
+                ),
+                note = "Japanese interoperable transit cards share FeliCa system 0003, so the card may not publicly confirm whether it is Suica, PASMO, ICOCA, or another compatible brand.",
             )
         } catch (error: FelicaProtocolException) {
-            success(
-                tag = tag,
-                profile = profile,
-                detectedName = profile.displayName,
-                protocol = "FeliCa service 090F",
-                balance = null,
-                systemCode = systemCode.toUpperHex(),
-                note = error.message ?: "The Japanese IC balance record was not exposed.",
+            japanesePolling?.let { polling ->
+                success(
+                    tag = tag,
+                    profile = TransitCardProfile.JAPAN_TRANSIT_IC,
+                    detectedName = "Japanese interoperable transit IC",
+                    cardId = polling.idm,
+                    protocol = "FeliCa system 0003",
+                    balance = null,
+                    systemCode = "%04X".format(polling.systemCode),
+                    details = listOf(
+                        TransitCardDetail(
+                            type = TransitCardDetailType.MANUFACTURER_PARAMETERS,
+                            value = polling.manufacturerParameters.toUpperHex(),
+                            monospace = true,
+                        ),
+                        TransitCardDetail(
+                            type = TransitCardDetailType.ANDROID_DISCOVERY_SYSTEM,
+                            value = discoverySystemCode.toUpperHex(),
+                            monospace = true,
+                        ),
+                    ),
+                    note = error.message
+                        ?: "The Japanese transit IC application was found, but no stored balance was exposed.",
+                )
+            } ?: CardReadResult.Failure(
+                error.message ?: "A compatible Japanese transit IC application was not found.",
             )
         } finally {
             nfcF.closeQuietly()
         }
     }
 
-    private fun readCepas(tag: Tag): CardReadResult {
+    private fun readCepas(
+        tag: Tag,
+        allowIdentificationFallback: Boolean = true,
+    ): CardReadResult {
         val isoDep = IsoDep.get(tag)
             ?: return CardReadResult.Failure("This EZ-Link profile requires an ISO-DEP CEPAS card.")
 
@@ -261,11 +345,17 @@ object TransitCardReader {
                 note = "Compatible with legacy CEPAS stored-value cards. Account-based SimplyGo cards may not expose a local balance.",
             )
         } catch (error: Iso7816ProtocolException) {
-            readIdentificationOnly(
-                tag = tag,
-                profile = TransitCardProfile.EZLINK,
-                extraNote = error.message ?: "No compatible legacy CEPAS purse was exposed.",
-            )
+            if (allowIdentificationFallback) {
+                readIdentificationOnly(
+                    tag = tag,
+                    profile = TransitCardProfile.EZLINK,
+                    extraNote = error.message ?: "No compatible legacy CEPAS purse was exposed.",
+                )
+            } else {
+                CardReadResult.Failure(
+                    error.message ?: "A compatible legacy CEPAS application was not found.",
+                )
+            }
         } finally {
             isoDep.closeQuietly()
         }
@@ -279,6 +369,12 @@ object TransitCardReader {
         )
 
         val candidates = when (profile) {
+            TransitCardProfile.AUTOMATIC -> listOf(
+                "Shenzhentong CPU card" to shenzhenAid,
+                "China T-Union" to tUnionAid,
+                "China City Union" to cityUnionAid,
+            )
+
             TransitCardProfile.SHENZHENTONG -> listOf(
                 "Shenzhentong CPU card" to shenzhenAid,
                 "China T-Union" to tUnionAid,
@@ -308,13 +404,26 @@ object TransitCardReader {
             }
 
             if (selected == null) {
-                readIdentificationOnly(
-                    tag = tag,
-                    profile = profile,
-                    extraNote = "No compatible public PBOC/T-Union application was found; balance data may be protected.",
-                )
+                if (profile == TransitCardProfile.AUTOMATIC) {
+                    CardReadResult.Failure("No compatible public China transit application was found.")
+                } else {
+                    readIdentificationOnly(
+                        tag = tag,
+                        profile = profile,
+                        extraNote = "No compatible public PBOC/T-Union application was found; balance data may be protected.",
+                    )
+                }
             } else {
                 val isTUnion = selected.second.contentEquals(tUnionAid)
+                val detectedProfile = if (profile == TransitCardProfile.AUTOMATIC) {
+                    if (selected.second.contentEquals(shenzhenAid)) {
+                        TransitCardProfile.SHENZHENTONG
+                    } else {
+                        TransitCardProfile.T_UNION
+                    }
+                } else {
+                    profile
+                }
                 var balanceIndex = 0
                 var balanceData = try {
                     transceiveIso7816(
@@ -424,7 +533,7 @@ object TransitCardReader {
                 }
                 success(
                     tag = tag,
-                    profile = profile,
+                    profile = detectedProfile,
                     detectedName = selected.first,
                     protocol = "PBOC transit purse over ISO-DEP",
                     balance = balanceData?.let {
@@ -456,7 +565,10 @@ object TransitCardReader {
         }
     }
 
-    private fun readTMoney(tag: Tag): CardReadResult {
+    private fun readTMoney(
+        tag: Tag,
+        allowIdentificationFallback: Boolean = true,
+    ): CardReadResult {
         val isoDep = IsoDep.get(tag)
             ?: return CardReadResult.Failure("T-money requires an ISO-DEP smart card.")
 
@@ -469,11 +581,17 @@ object TransitCardReader {
                     Iso7816TransitProtocol.selectApplication(TMoneyProtocol.applicationId),
                 )
             } catch (error: Iso7816ProtocolException) {
-                return readIdentificationOnly(
-                    tag = tag,
-                    profile = TransitCardProfile.T_MONEY,
-                    extraNote = error.message ?: "The public T-money application was not found.",
-                )
+                return if (allowIdentificationFallback) {
+                    readIdentificationOnly(
+                        tag = tag,
+                        profile = TransitCardProfile.T_MONEY,
+                        extraNote = error.message ?: "The public T-money application was not found.",
+                    )
+                } else {
+                    CardReadResult.Failure(
+                        error.message ?: "The public T-money application was not found.",
+                    )
+                }
             }
             val cardInfo = runCatching { TMoneyProtocol.parseCardInfo(selectData) }.getOrNull()
             val balanceData = try {
@@ -571,7 +689,10 @@ object TransitCardReader {
         }
     }
 
-    private fun readClipper(tag: Tag): CardReadResult {
+    private fun readClipper(
+        tag: Tag,
+        allowIdentificationFallback: Boolean = true,
+    ): CardReadResult {
         val isoDep = IsoDep.get(tag) ?: return readIdentificationOnly(
             tag = tag,
             profile = TransitCardProfile.CLIPPER,
@@ -592,11 +713,17 @@ object TransitCardReader {
             }
 
             if (!selected) {
-                readIdentificationOnly(
-                    tag = tag,
-                    profile = TransitCardProfile.CLIPPER,
-                    extraNote = "The classic public Clipper DESFire application was not found on this card.",
-                )
+                if (allowIdentificationFallback) {
+                    readIdentificationOnly(
+                        tag = tag,
+                        profile = TransitCardProfile.CLIPPER,
+                        extraNote = "The classic public Clipper DESFire application was not found on this card.",
+                    )
+                } else {
+                    CardReadResult.Failure(
+                        "The classic public Clipper DESFire application was not found.",
+                    )
+                }
             } else {
                 val balanceFile = try {
                     exchangeDesfire(isoDep, DesfireTransitProtocol.readData(0x02))
@@ -803,11 +930,12 @@ object TransitCardReader {
     private fun readIdentificationOnly(
         tag: Tag,
         profile: TransitCardProfile,
+        detectedName: String = profile.displayName,
         extraNote: String? = null,
     ): CardReadResult = success(
         tag = tag,
         profile = profile,
-        detectedName = profile.displayName,
+        detectedName = detectedName,
         protocol = technologyNames(tag),
         balance = null,
         note = listOfNotNull(
@@ -830,25 +958,27 @@ object TransitCardReader {
         transactions: List<TransitTransaction> = emptyList(),
         note: String,
     ) = CardReadResult.Success(
-        TransitCardScan(
-            selectedProfile = profile,
-            detectedName = detectedName,
-            cardId = cardId.toUpperHex(),
-            technology = technologyNames(tag),
-            protocol = protocol,
-            balance = balance,
-            cardNumber = cardNumber,
-            systemCode = systemCode,
-            rawDataHex = rawData?.toUpperHex(" "),
-            details = listOf(
-                TransitCardDetail(
-                    type = TransitCardDetailType.NFC_ID_LENGTH,
-                    value = cardId.size.toString(),
-                ),
-            ) + details,
-            transactions = transactions,
-            note = note,
-            scannedAt = Instant.now(),
+        scans = listOf(
+            TransitCardScan(
+                selectedProfile = profile,
+                detectedName = detectedName,
+                cardId = cardId.toUpperHex(),
+                technology = technologyNames(tag),
+                protocol = protocol,
+                balance = balance,
+                cardNumber = cardNumber,
+                systemCode = systemCode,
+                rawDataHex = rawData?.toUpperHex(" "),
+                details = listOf(
+                    TransitCardDetail(
+                        type = TransitCardDetailType.NFC_ID_LENGTH,
+                        value = cardId.size.toString(),
+                    ),
+                ) + details,
+                transactions = transactions,
+                note = note,
+                scannedAt = Instant.now(),
+            ),
         ),
     )
 

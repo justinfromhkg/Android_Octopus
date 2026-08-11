@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">다중 교통카드 리더</string>
+    <string name="app_language">앱 언어</string>
     <string name="hero_title">휴대전화 한 대로 여러 교통카드를.</string>
     <string name="hero_subtitle">데이터를 전송하지 않고 지원되는 실물 카드를 읽습니다.</string>
     <string name="select_card_title">카드 선택</string>
-    <string name="select_card_description">필수: 스캔하기 전에 정확한 카드를 선택해야 앱이 올바른 읽기 전용 NFC 프로토콜을 사용합니다.</string>
+    <string name="select_card_description">기본값은 자동 감지입니다. 공개 정보로 식별할 수 없는 보호 카드만 수동으로 카드 종류를 선택하세요.</string>
+    <string name="automatic_detection">자동 감지</string>
     <string name="choose_card">교통카드 선택</string>
     <string name="no_card_selected">선택된 카드 없음</string>
     <string name="octopus_card_generation">옥토퍼스 카드 세대</string>
@@ -14,13 +16,14 @@
     <string name="card_name_format">%1$s · %2$s</string>
     <string name="card_selection_format">%1$s — %2$s</string>
     <string name="how_to_scan">스캔 방법</string>
-    <string name="scan_step_1">카드에 맞는 시스템을 선택합니다.</string>
+    <string name="scan_step_1">자동 감지를 유지하거나 필요한 경우에만 수동 프로필을 선택합니다.</string>
     <string name="scan_step_2">스캔 버튼을 누릅니다.</string>
     <string name="scan_step_3">실물 카드를 휴대전화의 NFC 안테나에 대고 움직이지 마세요.</string>
     <string name="button_reading">읽는 중…</string>
     <string name="button_waiting">카드 대기 중…</string>
     <string name="button_select_first">먼저 카드 선택</string>
     <string name="button_scan_card">%1$s 스캔</string>
+    <string name="button_scan_automatic">스캔하고 카드 감지</string>
     <string name="open_nfc_settings">NFC 설정 열기</string>
     <string name="privacy_notice">읽기 전용: 충전, 결제, 인증 키 추측 또는 카드 쓰기를 하지 않습니다. 결과는 이 화면에만 표시되며 업로드되지 않습니다.</string>
 
@@ -34,6 +37,10 @@
     <string name="status_reading">%1$s 읽는 중…</string>
     <string name="status_read_success">%1$s을(를) 성공적으로 읽었습니다.</string>
     <string name="status_read_failed">카드를 읽을 수 없습니다. 선택한 카드 종류를 확인하고 카드를 움직이지 않은 채 다시 시도하세요.</string>
+    <string name="status_auto_ready">자동 감지가 준비되었습니다. 스캔을 누르세요.</string>
+    <string name="status_hold_any_card">교통카드를 휴대전화 뒷면 NFC 안테나에 평평하게 대세요.</string>
+    <string name="status_auto_reading">호환되는 모든 카드 애플리케이션을 감지하는 중…</string>
+    <string name="status_auto_read_success">감지 완료: 카드 애플리케이션 %1$d개를 찾았습니다.</string>
 
     <string name="estimated_balance">예상 잔액</string>
     <string name="balance">잔액</string>
@@ -48,6 +55,7 @@
     <string name="balance_reason_clipper">공개된 기존 Clipper DESFire 잔액 파일이 노출되지 않았습니다. 최신 계정 기반 카드는 다른 형식을 사용할 수 있습니다.</string>
     <string name="balance_reason_oyster">Oyster 잔액 데이터는 보호됩니다. 1세대 카드는 운영사 섹터 키가 필요하며 최신 DESFire 카드는 공개 잔액 파일을 제공하지 않습니다.</string>
     <string name="balance_reason_not_exposed">이 카드 세대에서는 예상된 공개 잔액 기록을 제공하지 않습니다.</string>
+    <string name="balance_reason_automatic_unknown">카드는 감지되었지만 공개 애플리케이션으로 발급사를 고유하게 식별할 수 없습니다. 카드 종류를 알면 수동 프로필을 선택하세요.</string>
 
     <string name="capability_estimated">예상 잔액 및 카드 식별자</string>
     <string name="capability_issuer_keys">카드 식별자만 지원. 잔액 섹터에는 발급사 키가 필요합니다</string>
@@ -57,10 +65,12 @@
     <string name="capability_china_variant">호환되는 CPU, City Union 또는 T-Union 카드 잔액. 미지원 시 식별자만 표시</string>
     <string name="capability_china_public">호환되는 T-Union 카드의 공개 잔액, 카드 상세 정보 및 최근 거래</string>
     <string name="capability_classic_clipper">공개된 기존 Clipper 애플리케이션이 있는 카드의 잔액</string>
+    <string name="capability_automatic">호환되는 모든 공개 읽기 전용 애플리케이션을 확인하고 감지된 각 코어를 표시합니다</string>
     <string name="capability_korean_public">호환되는 T-money 카드의 공개 잔액, 카드 상세 정보 및 최근 거래</string>
     <string name="capability_oyster_protected">카드 세대 및 안전한 칩 메타데이터. Oyster 잔액 데이터는 보호됨</string>
 
     <string name="selected_profile">선택한 카드 종류</string>
+    <string name="multiple_applications_detected">카드 애플리케이션 %1$d개 감지됨</string>
     <string name="detected_card">감지된 카드/애플리케이션</string>
     <string name="nfc_identifier">NFC 식별자</string>
     <string name="card_number">카드 번호</string>
@@ -129,4 +139,5 @@
     <string name="region_macau">마카오</string>
     <string name="region_malaysia">말레이시아</string>
     <string name="region_london_uk">영국 런던</string>
+    <string name="region_supported_cards">지원되는 모든 지역</string>
 </resources>

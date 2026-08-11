@@ -8,6 +8,30 @@ class FelicaProtocolTest {
     private val idm = byteArrayOf(1, 2, 3, 4, 5, 6, 7, 8)
 
     @Test
+    fun `Japanese IC polling explicitly selects shared system 0003`() {
+        assertArrayEquals(
+            byteArrayOf(0x06, 0x00, 0x00, 0x03, 0x01, 0x00),
+            FelicaProtocol.buildPollingCommand(JapaneseIcProtocol.SYSTEM_CODE),
+        )
+        val pmm = byteArrayOf(8, 7, 6, 5, 4, 3, 2, 1)
+        val polling = FelicaProtocol.parsePollingResponse(
+            response = byteArrayOf(
+                0x14,
+                0x01,
+                *idm,
+                *pmm,
+                0x00,
+                0x03,
+            ),
+            expectedSystemCode = JapaneseIcProtocol.SYSTEM_CODE,
+        )
+
+        assertArrayEquals(idm, polling.idm)
+        assertArrayEquals(pmm, polling.manufacturerParameters)
+        assertEquals(JapaneseIcProtocol.SYSTEM_CODE, polling.systemCode)
+    }
+
+    @Test
     fun `Japanese IC command uses history service 090F`() {
         val command = FelicaProtocol.buildReadCommand(
             idm = idm,

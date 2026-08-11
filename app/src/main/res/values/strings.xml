@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Multi Transit Card Reader</string>
+    <string name="app_language">App language</string>
     <string name="hero_title">One phone. Many transit cards.</string>
     <string name="hero_subtitle">Read supported physical cards without sending their data anywhere.</string>
     <string name="select_card_title">Select your card</string>
-    <string name="select_card_description">Required: choose the exact card before scanning so the app uses the correct read-only NFC protocol.</string>
+    <string name="select_card_description">Automatic detection is the default. Choose a specific profile only when a protected or ambiguous card cannot identify itself publicly.</string>
+    <string name="automatic_detection">Automatic detection</string>
     <string name="choose_card">Choose a transit card</string>
     <string name="no_card_selected">No card selected</string>
     <string name="octopus_card_generation">Octopus card generation</string>
@@ -14,13 +16,14 @@
     <string name="card_name_format">%1$s · %2$s</string>
     <string name="card_selection_format">%1$s — %2$s</string>
     <string name="how_to_scan">How to scan</string>
-    <string name="scan_step_1">Choose the matching card system.</string>
+    <string name="scan_step_1">Keep automatic detection selected, or choose a manual profile when needed.</string>
     <string name="scan_step_2">Tap the Scan button.</string>
     <string name="scan_step_3">Hold the physical card still against the phone’s NFC antenna.</string>
     <string name="button_reading">Reading…</string>
     <string name="button_waiting">Waiting for card…</string>
     <string name="button_select_first">Select a card first</string>
     <string name="button_scan_card">Scan %1$s</string>
+    <string name="button_scan_automatic">Scan and detect card</string>
     <string name="open_nfc_settings">Open NFC settings</string>
     <string name="privacy_notice">Read-only: no top-up, payment, authentication-key guessing, or card writes. Results stay on this screen and are not uploaded.</string>
 
@@ -34,6 +37,10 @@
     <string name="status_reading">Reading %1$s…</string>
     <string name="status_read_success">%1$s read successfully.</string>
     <string name="status_read_failed">The card could not be read. Check the selected card type, hold it still, and try again.</string>
+    <string name="status_auto_ready">Automatic detection is ready. Tap Scan.</string>
+    <string name="status_hold_any_card">Hold the transit card flat against the back of the phone.</string>
+    <string name="status_auto_reading">Detecting every compatible card application…</string>
+    <string name="status_auto_read_success">Detection complete: %1$d card application(s) found.</string>
 
     <string name="estimated_balance">Estimated balance</string>
     <string name="balance">Balance</string>
@@ -48,6 +55,7 @@
     <string name="balance_reason_clipper">The public classic Clipper DESFire balance file was not exposed. Newer account-based cards may use a different format.</string>
     <string name="balance_reason_oyster">Oyster balance data is protected. First-generation cards require operator sector keys, while newer DESFire cards do not expose a public balance file.</string>
     <string name="balance_reason_not_exposed">The expected public balance record was not exposed by this card generation.</string>
+    <string name="balance_reason_automatic_unknown">The card was detected, but no public application uniquely identified its issuer. Choose a manual profile if you know the card type.</string>
 
     <string name="capability_estimated">Estimated balance and card identifier</string>
     <string name="capability_issuer_keys">Card identifier only; balance sectors require issuer keys</string>
@@ -57,10 +65,12 @@
     <string name="capability_china_variant">Balance on compatible CPU, City Union, or T-Union cards; identifier fallback</string>
     <string name="capability_china_public">Public balance, card details, and recent transactions on compatible T-Union cards</string>
     <string name="capability_classic_clipper">Balance on cards with the public classic Clipper application</string>
+    <string name="capability_automatic">Probes every compatible public, read-only application and shows all detected cores</string>
     <string name="capability_korean_public">Public balance, card details, and recent transactions on compatible T-money cards</string>
     <string name="capability_oyster_protected">Card generation and safe chip metadata; Oyster balance data is protected</string>
 
     <string name="selected_profile">Selected profile</string>
+    <string name="multiple_applications_detected">%1$d card applications detected</string>
     <string name="detected_card">Detected card/application</string>
     <string name="nfc_identifier">NFC identifier</string>
     <string name="card_number">Card number</string>
@@ -129,4 +139,5 @@
     <string name="region_macau">Macau</string>
     <string name="region_malaysia">Malaysia</string>
     <string name="region_london_uk">London, United Kingdom</string>
+    <string name="region_supported_cards">All supported regions</string>
 </resources>
