@@ -12,6 +12,7 @@ class TransitCardProfileTest {
                 "EasyCard",
                 "iPASS",
                 "EZ-Link",
+                "T-money",
                 "Suica",
                 "PASMO",
                 "ICOCA",
@@ -21,6 +22,7 @@ class TransitCardProfileTest {
                 "Clipper",
                 "Macau Pass",
                 "Touch ’n Go",
+                "Oyster",
             ),
             TransitCardProfile.entries.map(TransitCardProfile::displayName),
         )
@@ -34,5 +36,6 @@ class TransitCardProfileTest {
         assertEquals("スイカ", TransitCardProfile.SUICA.localName)
         assertEquals("羊城通", TransitCardProfile.YANGCHENGTONG.localName)
         assertEquals("澳門通", TransitCardProfile.MACAU_PASS.localName)
+        assertEquals("티머니", TransitCardProfile.T_MONEY.localName)
     }
 }

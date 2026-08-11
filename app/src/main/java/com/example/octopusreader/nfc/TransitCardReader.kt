@@ -3,6 +3,7 @@ package com.example.octopusreader.nfc
 import android.nfc.Tag
 import android.nfc.TagLostException
 import android.nfc.tech.IsoDep
+import android.nfc.tech.MifareClassic
 import android.nfc.tech.NfcF
 import java.io.IOException
 import java.time.Instant
@@ -22,12 +23,14 @@ object TransitCardReader {
             TransitCardProfile.ICOCA,
             -> readJapaneseIc(tag, profile)
             TransitCardProfile.EZLINK -> readCepas(tag)
+            TransitCardProfile.T_MONEY -> readTMoney(tag)
             TransitCardProfile.T_UNION,
             TransitCardProfile.YANGCHENGTONG,
             TransitCardProfile.SHENZHENTONG,
             -> readChinaTransit(tag, profile)
 
             TransitCardProfile.CLIPPER -> readClipper(tag)
+            TransitCardProfile.OYSTER -> readOyster(tag)
             TransitCardProfile.EASYCARD,
             TransitCardProfile.IPASS,
             TransitCardProfile.MACAU_PASS,
@@ -55,22 +58,45 @@ object TransitCardReader {
             return CardReadResult.Failure("The card returned an invalid FeliCa identifier.")
         }
 
-        val systemCode = nfcF.systemCode
-        if (!systemCode.contentEquals(OctopusProtocol.systemCode)) {
-            return CardReadResult.Failure(
-                "This is not an Octopus card (FeliCa system ${systemCode.toUpperHex()}).",
-            )
-        }
+        val discoverySystemCode = nfcF.systemCode
+        var availableSystemCodes = listOf(discoverySystemCode)
+        var octopusPolling: OctopusPollingData? = null
 
         return try {
             nfcF.connect()
             nfcF.timeout = 3_000
-            val response = nfcF.transceive(OctopusProtocol.buildBalanceReadCommand(idm))
-            val balance = OctopusProtocol.parseBalanceReadResponse(response, idm, balanceBasis)
+            availableSystemCodes = try {
+                OctopusProtocol.parseRequestSystemCodesResponse(
+                    response = nfcF.transceive(
+                        OctopusProtocol.buildRequestSystemCodesCommand(idm),
+                    ),
+                    expectedIdm = idm,
+                )
+            } catch (_: OctopusProtocolException) {
+                availableSystemCodes
+            } catch (_: IOException) {
+                availableSystemCodes
+            }
+            val polling = OctopusProtocol.parsePollingResponse(
+                nfcF.transceive(OctopusProtocol.buildPollingCommand()),
+            )
+            octopusPolling = polling
+            if (availableSystemCodes.none { it.contentEquals(polling.systemCode) }) {
+                availableSystemCodes = availableSystemCodes + listOf(polling.systemCode)
+            }
+            val response = nfcF.transceive(
+                OctopusProtocol.buildBalanceReadCommand(polling.idm),
+            )
+            val balance = OctopusProtocol.parseBalanceReadResponse(
+                response,
+                polling.idm,
+                balanceBasis,
+            )
             success(
                 tag = tag,
                 profile = TransitCardProfile.OCTOPUS,
                 detectedName = "Octopus",
+                cardId = polling.idm,
                 protocol = "FeliCa Read Without Encryption",
                 balance = TransitBalance(
                     currencyCode = "HKD",
@@ -78,12 +104,22 @@ object TransitCardReader {
                     fractionDigits = 2,
                     isEstimated = true,
                 ),
-                systemCode = systemCode.toUpperHex(),
+                systemCode = polling.systemCode.toUpperHex(),
                 rawData = balance.rawBlock,
                 details = listOf(
                     TransitCardDetail(
                         type = TransitCardDetailType.MANUFACTURER_PARAMETERS,
-                        value = nfcF.manufacturer.toUpperHex(),
+                        value = polling.manufacturerParameters.toUpperHex(),
+                        monospace = true,
+                    ),
+                    TransitCardDetail(
+                        type = TransitCardDetailType.ANDROID_DISCOVERY_SYSTEM,
+                        value = discoverySystemCode.toUpperHex(),
+                        monospace = true,
+                    ),
+                    TransitCardDetail(
+                        type = TransitCardDetailType.FELICA_SYSTEM_CODES,
+                        value = availableSystemCodes.joinToString(" · ") { it.toUpperHex() },
                         monospace = true,
                     ),
                     TransitCardDetail(
@@ -103,13 +139,31 @@ object TransitCardReader {
                 tag = tag,
                 profile = TransitCardProfile.OCTOPUS,
                 detectedName = "Octopus",
+                cardId = octopusPolling?.idm ?: tag.id,
                 protocol = "FeliCa Read Without Encryption",
                 balance = null,
-                systemCode = systemCode.toUpperHex(),
+                systemCode = if (
+                    availableSystemCodes.any { it.contentEquals(OctopusProtocol.systemCode) }
+                ) {
+                    OctopusProtocol.systemCode.toUpperHex()
+                } else {
+                    discoverySystemCode.toUpperHex()
+                },
                 details = listOf(
                     TransitCardDetail(
                         type = TransitCardDetailType.MANUFACTURER_PARAMETERS,
-                        value = nfcF.manufacturer.toUpperHex(),
+                        value = (octopusPolling?.manufacturerParameters ?: nfcF.manufacturer)
+                            .toUpperHex(),
+                        monospace = true,
+                    ),
+                    TransitCardDetail(
+                        type = TransitCardDetailType.ANDROID_DISCOVERY_SYSTEM,
+                        value = discoverySystemCode.toUpperHex(),
+                        monospace = true,
+                    ),
+                    TransitCardDetail(
+                        type = TransitCardDetailType.FELICA_SYSTEM_CODES,
+                        value = availableSystemCodes.joinToString(" · ") { it.toUpperHex() },
                         monospace = true,
                     ),
                 ),
@@ -402,6 +456,121 @@ object TransitCardReader {
         }
     }
 
+    private fun readTMoney(tag: Tag): CardReadResult {
+        val isoDep = IsoDep.get(tag)
+            ?: return CardReadResult.Failure("T-money requires an ISO-DEP smart card.")
+
+        return try {
+            isoDep.connect()
+            isoDep.timeout = 3_000
+            val selectData = try {
+                transceiveIso7816(
+                    isoDep,
+                    Iso7816TransitProtocol.selectApplication(TMoneyProtocol.applicationId),
+                )
+            } catch (error: Iso7816ProtocolException) {
+                return readIdentificationOnly(
+                    tag = tag,
+                    profile = TransitCardProfile.T_MONEY,
+                    extraNote = error.message ?: "The public T-money application was not found.",
+                )
+            }
+            val cardInfo = runCatching { TMoneyProtocol.parseCardInfo(selectData) }.getOrNull()
+            val balanceData = try {
+                transceiveIso7816(isoDep, TMoneyProtocol.getBalanceCommand())
+            } catch (_: Iso7816ProtocolException) {
+                null
+            }
+            val balanceWon = balanceData?.let { data ->
+                runCatching { TMoneyProtocol.parseBalanceWon(data) }.getOrNull()
+            }
+            val transactions = readIso7816Records(
+                isoDep = isoDep,
+                sfi = 0x04,
+                minimumLength = 46,
+            ).mapNotNull(TMoneyProtocol::parseTransaction)
+            val details = buildList {
+                add(
+                    TransitCardDetail(
+                        type = TransitCardDetailType.APPLICATION_ID,
+                        value = TMoneyProtocol.applicationId.toUpperHex(),
+                        monospace = true,
+                    ),
+                )
+                cardInfo?.let { info ->
+                    add(
+                        TransitCardDetail(
+                            type = TransitCardDetailType.CARD_TYPE_CODE,
+                            value = "%02X".format(info.cardTypeCode),
+                            monospace = true,
+                        ),
+                    )
+                    add(
+                        TransitCardDetail(
+                            type = TransitCardDetailType.ISSUER_CODE,
+                            value = info.issuerCode,
+                            monospace = true,
+                        ),
+                    )
+                    info.issueDate?.let {
+                        add(
+                            TransitCardDetail(
+                                type = TransitCardDetailType.ISSUE_DATE,
+                                value = it.format(DateTimeFormatter.ISO_LOCAL_DATE),
+                            ),
+                        )
+                    }
+                    info.validUntil?.let {
+                        add(
+                            TransitCardDetail(
+                                type = TransitCardDetailType.VALID_UNTIL,
+                                value = it.format(DateTimeFormatter.ISO_LOCAL_DATE),
+                            ),
+                        )
+                    }
+                    info.maximumBalanceWon?.let {
+                        add(
+                            TransitCardDetail(
+                                type = TransitCardDetailType.MAXIMUM_BALANCE,
+                                value = "$it KRW",
+                            ),
+                        )
+                    }
+                }
+                add(
+                    TransitCardDetail(
+                        type = TransitCardDetailType.TRANSACTION_RECORDS_READ,
+                        value = transactions.size.toString(),
+                    ),
+                )
+            }
+            success(
+                tag = tag,
+                profile = TransitCardProfile.T_MONEY,
+                detectedName = "T-money",
+                protocol = "KS X 6924 public purse over ISO-DEP",
+                balance = balanceWon?.let {
+                    TransitBalance(
+                        currencyCode = "KRW",
+                        amountMinor = it,
+                        fractionDigits = 0,
+                    )
+                },
+                cardNumber = cardInfo?.serialNumber,
+                rawData = balanceData,
+                details = details,
+                transactions = transactions,
+                note = if (balanceWon == null) {
+                    "The public T-money application was identified, but this card did not expose its purse balance. Public card details and history are shown when available."
+                } else {
+                    "Read from the public T-money purse. No write or value-changing command was sent."
+                },
+            )
+        } finally {
+            isoDep.closeQuietly()
+        }
+    }
+
     private fun readClipper(tag: Tag): CardReadResult {
         val isoDep = IsoDep.get(tag) ?: return readIdentificationOnly(
             tag = tag,
@@ -459,6 +628,113 @@ object TransitCardReader {
         }
     }
 
+    private fun readOyster(tag: Tag): CardReadResult {
+        val mifareClassic = MifareClassic.get(tag)
+        if (mifareClassic != null) {
+            return try {
+                mifareClassic.connect()
+                val mifareType = when (mifareClassic.type) {
+                    MifareClassic.TYPE_CLASSIC -> "MIFARE Classic"
+                    MifareClassic.TYPE_PLUS -> "MIFARE Plus"
+                    MifareClassic.TYPE_PRO -> "MIFARE Pro"
+                    else -> "Unknown MIFARE Classic-compatible type"
+                }
+                success(
+                    tag = tag,
+                    profile = TransitCardProfile.OYSTER,
+                    detectedName = "Oyster-compatible card",
+                    protocol = "$mifareType metadata (no sector authentication)",
+                    balance = null,
+                    details = listOf(
+                        TransitCardDetail(
+                            type = TransitCardDetailType.CARD_GENERATION,
+                            value = mifareType,
+                        ),
+                        TransitCardDetail(
+                            type = TransitCardDetailType.MEMORY_SIZE,
+                            value = "${mifareClassic.size} bytes",
+                        ),
+                        TransitCardDetail(
+                            type = TransitCardDetailType.SECTOR_COUNT,
+                            value = mifareClassic.sectorCount.toString(),
+                        ),
+                        TransitCardDetail(
+                            type = TransitCardDetailType.BLOCK_COUNT,
+                            value = mifareClassic.blockCount.toString(),
+                        ),
+                    ),
+                    note = "This matches the technology used by first-generation Oyster cards. Oyster sector keys are not public, so the app does not attempt authentication or show a balance.",
+                )
+            } finally {
+                mifareClassic.closeQuietly()
+            }
+        }
+
+        val isoDep = IsoDep.get(tag) ?: return readIdentificationOnly(
+            tag = tag,
+            profile = TransitCardProfile.OYSTER,
+            extraNote = "Neither a MIFARE Classic nor an ISO-DEP interface was available.",
+        )
+        return try {
+            isoDep.connect()
+            isoDep.timeout = 3_000
+            val version = try {
+                DesfireTransitProtocol.parseVersion(
+                    exchangeDesfire(isoDep, DesfireTransitProtocol.getVersion()),
+                )
+            } catch (error: DesfireProtocolException) {
+                return readIdentificationOnly(
+                    tag = tag,
+                    profile = TransitCardProfile.OYSTER,
+                    extraNote = error.message ?: "A public DESFire version response was unavailable.",
+                )
+            } catch (_: IllegalArgumentException) {
+                return readIdentificationOnly(
+                    tag = tag,
+                    profile = TransitCardProfile.OYSTER,
+                    extraNote = "The DESFire version response was incomplete.",
+                )
+            }
+            success(
+                tag = tag,
+                profile = TransitCardProfile.OYSTER,
+                detectedName = "Oyster-compatible DESFire card",
+                protocol = "MIFARE DESFire GetVersion (read-only)",
+                balance = null,
+                details = listOf(
+                    TransitCardDetail(
+                        type = TransitCardDetailType.CARD_GENERATION,
+                        value = "MIFARE DESFire",
+                    ),
+                    TransitCardDetail(
+                        type = TransitCardDetailType.DESFIRE_HARDWARE_VERSION,
+                        value = "%d.%d (vendor %02X, type %02X, storage %02X)".format(
+                            version.hardwareMajor,
+                            version.hardwareMinor,
+                            version.hardwareVendorId,
+                            version.hardwareType,
+                            version.hardwareStorageCode,
+                        ),
+                        monospace = true,
+                    ),
+                    TransitCardDetail(
+                        type = TransitCardDetailType.DESFIRE_SOFTWARE_VERSION,
+                        value = "${version.softwareMajor}.${version.softwareMinor}",
+                        monospace = true,
+                    ),
+                    TransitCardDetail(
+                        type = TransitCardDetailType.DESFIRE_CHIP_IDENTIFIER,
+                        value = version.chipIdentifier,
+                        monospace = true,
+                    ),
+                ),
+                note = "Newer Oyster cards use DESFire and do not expose a freely readable Oyster balance file. Only standard read-only chip metadata is shown.",
+            )
+        } finally {
+            isoDep.closeQuietly()
+        }
+    }
+
     private fun exchangeDesfire(isoDep: IsoDep, command: ByteArray): ByteArray {
         val output = mutableListOf<Byte>()
         var response = isoDep.transceive(command)
@@ -488,10 +764,23 @@ object TransitCardReader {
     }
 
     private fun readTUnionTransactionRecords(isoDep: IsoDep): List<ByteArray> {
+        return readIso7816Records(
+            isoDep = isoDep,
+            sfi = 0x18,
+            minimumLength = 23,
+        )
+    }
+
+    private fun readIso7816Records(
+        isoDep: IsoDep,
+        sfi: Int,
+        minimumLength: Int,
+        maximumRecords: Int = 10,
+    ): List<ByteArray> {
         val records = mutableListOf<ByteArray>()
-        for (recordNumber in 1..10) {
+        for (recordNumber in 1..maximumRecords) {
             val command = Iso7816TransitProtocol.readRecordBySfi(
-                sfi = 0x18,
+                sfi = sfi,
                 recordNumber = recordNumber,
             )
             var response = isoDep.transceive(command)
@@ -505,7 +794,7 @@ object TransitCardReader {
             } catch (_: Iso7816ProtocolException) {
                 break
             }
-            if (record.size < 23) break
+            if (record.size < minimumLength) break
             records += record
         }
         return records
@@ -531,6 +820,7 @@ object TransitCardReader {
         tag: Tag,
         profile: TransitCardProfile,
         detectedName: String,
+        cardId: ByteArray = tag.id,
         protocol: String,
         balance: TransitBalance?,
         cardNumber: String? = null,
@@ -543,7 +833,7 @@ object TransitCardReader {
         TransitCardScan(
             selectedProfile = profile,
             detectedName = detectedName,
-            cardId = tag.id.toUpperHex(),
+            cardId = cardId.toUpperHex(),
             technology = technologyNames(tag),
             protocol = protocol,
             balance = balance,
@@ -553,7 +843,7 @@ object TransitCardReader {
             details = listOf(
                 TransitCardDetail(
                     type = TransitCardDetailType.NFC_ID_LENGTH,
-                    value = tag.id.size.toString(),
+                    value = cardId.size.toString(),
                 ),
             ) + details,
             transactions = transactions,
@@ -578,6 +868,14 @@ private fun NfcF.closeQuietly() {
 }
 
 private fun IsoDep.closeQuietly() {
+    try {
+        close()
+    } catch (_: IOException) {
+        // The card may already be out of range.
+    }
+}
+
+private fun MifareClassic.closeQuietly() {
     try {
         close()
     } catch (_: IOException) {

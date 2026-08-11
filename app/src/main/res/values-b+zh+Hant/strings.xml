@@ -46,6 +46,7 @@
     <string name="balance_reason_legacy_cepas">找不到相容的舊版 CEPAS 電子錢包。SimplyGo 和較新的帳戶制卡片可能不會在卡內儲存本地餘額。</string>
     <string name="balance_reason_china_variant">找不到相容的公開 CPU、城市一卡通或交通聯合電子錢包。舊版 MIFARE 卡可能需要發卡機構金鑰。</string>
     <string name="balance_reason_clipper">找不到公開的傳統 Clipper DESFire 餘額檔案。較新的帳戶制卡片可能使用其他格式。</string>
+    <string name="balance_reason_oyster">Oyster 餘額資料受保護。第一代卡片需要營運機構的扇區金鑰，較新的 DESFire 卡則沒有公開餘額檔案。</string>
     <string name="balance_reason_not_exposed">此代卡片沒有提供預期的公開餘額記錄。</string>
 
     <string name="capability_estimated">估算餘額和卡片識別碼</string>
@@ -56,6 +57,8 @@
     <string name="capability_china_variant">相容 CPU、城市一卡通或交通聯合卡可讀取餘額，否則只讀取識別碼</string>
     <string name="capability_china_public">相容交通聯合卡的公開餘額、卡片資料及近期交易</string>
     <string name="capability_classic_clipper">可讀取具有公開傳統 Clipper 應用程式的卡片餘額</string>
+    <string name="capability_korean_public">相容 T-money 卡的公開餘額、卡片資料及近期交易</string>
+    <string name="capability_oyster_protected">卡片世代及安全晶片中繼資料；Oyster 餘額資料受保護</string>
 
     <string name="selected_profile">所選卡片類型</string>
     <string name="detected_card">偵測到的卡片／應用程式</string>
@@ -69,6 +72,8 @@
     <string name="card_details">卡片詳細資料</string>
     <string name="nfc_id_length">NFC 識別碼長度（位元組）</string>
     <string name="manufacturer_parameters">FeliCa 製造商參數（PMm）</string>
+    <string name="android_discovery_system">Android 偵測系統</string>
+    <string name="felica_system_codes">可用的 FeliCa 系統代碼</string>
     <string name="raw_balance_units">原始餘額單位（HK$0.10）</string>
     <string name="octopus_balance_basis">八達通餘額基準</string>
     <string name="application_version">應用程式版本</string>
@@ -77,11 +82,24 @@
     <string name="valid_until">有效期至</string>
     <string name="balance_purse_layout">餘額／欠款錢包索引</string>
     <string name="transaction_records_read">已解碼交易紀錄</string>
-    <string name="recent_transactions">近期交通聯合交易</string>
+    <string name="application_id">應用程式識別碼（AID）</string>
+    <string name="card_type_code">卡片類型代碼</string>
+    <string name="issue_date">發行日期</string>
+    <string name="maximum_balance">最高餘額</string>
+    <string name="card_generation">卡片世代／晶片系列</string>
+    <string name="memory_size">記憶體大小</string>
+    <string name="sector_count">扇區數量</string>
+    <string name="block_count">區塊數量</string>
+    <string name="desfire_hardware_version">DESFire 硬體版本</string>
+    <string name="desfire_software_version">DESFire 軟體版本</string>
+    <string name="desfire_chip_identifier">DESFire 晶片識別碼</string>
+    <string name="recent_transactions">近期交易</string>
     <string name="transaction_code_notice">交通聯合卡儲存的是數字終端、路線及車站識別碼，並非可靠的全國中文名稱清單。沒有經核實的發卡機構對照表時，本應用程式會顯示卡內代碼。地鐵紀錄通常只有出閘終端，沒有上車站。</string>
+    <string name="tmoney_transaction_notice">T-money 紀錄提供交易類型、金額、交易後餘額、時間及終端代碼。這些公開紀錄通常不會可靠地儲存可讀的路線和車站名稱。</string>
     <string name="transaction_title">%1$d · %2$s</string>
     <string name="transaction_time">時間</string>
     <string name="transaction_amount">金額</string>
+    <string name="transaction_balance_after">交易後餘額</string>
     <string name="bus_route_code">巴士／路線代碼</string>
     <string name="boarding_station">上車站</string>
     <string name="alighting_station_code">下車站代碼</string>
@@ -96,11 +114,13 @@
     <string name="transaction_bus">巴士車程</string>
     <string name="transaction_metro">地鐵／鐵路車程</string>
     <string name="transaction_purchase">車費／消費</string>
+    <string name="transaction_transit_ride">交通車程</string>
     <string name="transaction_unknown">其他交易</string>
 
     <string name="region_hong_kong">香港</string>
     <string name="region_taiwan">台灣</string>
     <string name="region_singapore">新加坡</string>
+    <string name="region_south_korea">韓國</string>
     <string name="region_japan">日本</string>
     <string name="region_guangzhou">廣東廣州</string>
     <string name="region_shenzhen">廣東深圳</string>
@@ -108,4 +128,5 @@
     <string name="region_san_francisco">三藩市灣區</string>
     <string name="region_macau">澳門</string>
     <string name="region_malaysia">馬來西亞</string>
+    <string name="region_london_uk">英國倫敦</string>
 </resources>

@@ -3,6 +3,8 @@ package com.example.octopusreader.nfc
 internal object DesfireTransitProtocol {
     const val CLIPPER_APP_ID = 0x9011F2
 
+    fun getVersion(): ByteArray = wrap(0x60, byteArrayOf())
+
     fun selectApplication(appId: Int): ByteArray = wrap(
         command = 0x5A,
         parameters = byteArrayOf(
@@ -51,7 +53,32 @@ internal object DesfireTransitProtocol {
             (fileData[19].toInt() and 0xFF)).toShort()
         return signed.toLong()
     }
+
+    fun parseVersion(data: ByteArray): DesfireVersionInfo {
+        require(data.size >= 28) { "The DESFire version response is too short." }
+        return DesfireVersionInfo(
+            hardwareVendorId = data[0].toInt() and 0xFF,
+            hardwareType = data[1].toInt() and 0xFF,
+            hardwareMajor = data[3].toInt() and 0xFF,
+            hardwareMinor = data[4].toInt() and 0xFF,
+            hardwareStorageCode = data[5].toInt() and 0xFF,
+            softwareMajor = data[10].toInt() and 0xFF,
+            softwareMinor = data[11].toInt() and 0xFF,
+            chipIdentifier = data.copyOfRange(14, 21).toUpperHex(),
+        )
+    }
 }
+
+internal data class DesfireVersionInfo(
+    val hardwareVendorId: Int,
+    val hardwareType: Int,
+    val hardwareMajor: Int,
+    val hardwareMinor: Int,
+    val hardwareStorageCode: Int,
+    val softwareMajor: Int,
+    val softwareMinor: Int,
+    val chipIdentifier: String,
+)
 
 internal data class DesfireFrame(val data: ByteArray, val status: Int)
 

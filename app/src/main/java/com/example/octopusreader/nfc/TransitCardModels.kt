@@ -38,6 +38,13 @@ enum class TransitCardProfile(
         technologyHint = "ISO-DEP / CEPAS",
         balanceReadSupport = BalanceReadSupport.LEGACY_CEPAS,
     ),
+    T_MONEY(
+        displayName = "T-money",
+        localName = "티머니",
+        region = "South Korea",
+        technologyHint = "ISO-DEP / KS X 6924",
+        balanceReadSupport = BalanceReadSupport.KOREAN_PUBLIC_PURSE,
+    ),
     SUICA(
         displayName = "Suica",
         localName = "スイカ",
@@ -101,6 +108,13 @@ enum class TransitCardProfile(
         technologyHint = "MIFARE Classic / NFC-A",
         balanceReadSupport = BalanceReadSupport.ISSUER_KEYS,
     ),
+    OYSTER(
+        displayName = "Oyster",
+        localName = null,
+        region = "London, United Kingdom",
+        technologyHint = "MIFARE Classic or DESFire",
+        balanceReadSupport = BalanceReadSupport.OYSTER_PROTECTED,
+    ),
 }
 
 enum class BalanceReadSupport {
@@ -112,6 +126,8 @@ enum class BalanceReadSupport {
     CHINA_CARD_VARIANT,
     CHINA_PUBLIC_PURSE,
     CLASSIC_CLIPPER,
+    KOREAN_PUBLIC_PURSE,
+    OYSTER_PROTECTED,
 }
 
 enum class OctopusBalanceBasis(val rawOffsetTenths: Long) {
@@ -134,6 +150,8 @@ data class TransitBalance(
 enum class TransitCardDetailType {
     NFC_ID_LENGTH,
     MANUFACTURER_PARAMETERS,
+    ANDROID_DISCOVERY_SYSTEM,
+    FELICA_SYSTEM_CODES,
     RAW_BALANCE_UNITS,
     OCTOPUS_BALANCE_BASIS,
     APPLICATION_VERSION,
@@ -142,6 +160,17 @@ enum class TransitCardDetailType {
     VALID_UNTIL,
     BALANCE_PURSE_LAYOUT,
     TRANSACTION_RECORDS_READ,
+    APPLICATION_ID,
+    CARD_TYPE_CODE,
+    ISSUE_DATE,
+    MAXIMUM_BALANCE,
+    CARD_GENERATION,
+    MEMORY_SIZE,
+    SECTOR_COUNT,
+    BLOCK_COUNT,
+    DESFIRE_HARDWARE_VERSION,
+    DESFIRE_SOFTWARE_VERSION,
+    DESFIRE_CHIP_IDENTIFIER,
 }
 
 data class TransitCardDetail(
@@ -155,6 +184,7 @@ enum class TransitTransactionType {
     BUS,
     METRO,
     PURCHASE,
+    TRANSIT_RIDE,
     UNKNOWN,
 }
 
@@ -162,6 +192,8 @@ data class TransitTransaction(
     val type: TransitTransactionType,
     val timestamp: LocalDateTime?,
     val amountMinor: Long,
+    val currencyCode: String,
+    val fractionDigits: Int,
     val transactionCode: Int,
     val sequenceCounter: Int,
     val overdraftMinor: Long,
@@ -170,6 +202,7 @@ data class TransitTransaction(
     val boardingStationCode: String? = null,
     val alightingStationCode: String? = null,
     val gateCode: String? = null,
+    val balanceAfterMinor: Long? = null,
     val rawDataHex: String,
 )
 

@@ -1,8 +1,8 @@
 # Multi Transit Card Reader for Android
 
 A native, read-only Android NFC application for inspecting physical transit
-cards from Hong Kong, Taiwan, Singapore, Japan, mainland China, the San
-Francisco Bay Area, Macau, and Malaysia.
+cards from Hong Kong, Taiwan, Singapore, South Korea, Japan, mainland China,
+the San Francisco Bay Area, Macau, Malaysia, and the United Kingdom.
 
 Source repository: [justinfromhkg/Android_Octopus](https://github.com/justinfromhkg/Android_Octopus)
 
@@ -10,10 +10,11 @@ Source repository: [justinfromhkg/Android_Octopus](https://github.com/justinfrom
 
 | Card profile | What this version can read | Important limitation |
 | --- | --- | --- |
-| Octopus (Hong Kong) | NFC identifier, FeliCa details, and community-decoded balance estimate with a selectable HK$35/HK$50 card-generation basis | The card does not publicly identify the correct balance offset; select the matching issuance type and verify important amounts with an official reader |
+| Octopus (Hong Kong) | NFC identifier, FeliCa details, and community-decoded balance estimate with a selectable HK$35/HK$50 card-generation basis; explicitly selects system `8008` on Octopus + Shenzhen/T-Union multi-system cards | The card does not publicly identify the correct balance offset; select the matching issuance type and verify important amounts with an official reader |
 | EasyCard (Taiwan) | NFC identifier and technology metadata | Balance sectors require issuer MIFARE Classic keys |
 | iPASS (Taiwan) | NFC identifier and technology metadata | Stored-value data varies by generation and is not decoded here |
 | EZ-Link / CEPAS (Singapore) | Card number and balance on compatible legacy CEPAS cards | SimplyGo/account-based cards may not keep a readable local balance |
+| T-money / 티머니 (South Korea) | Public purse balance, card details, and up to 10 recent public transaction records on compatible KS X 6924 cards | Human-readable route/station names are not reliably available in the public record; some generations may not expose the same application |
 | Suica / PASMO / ICOCA (Japan) | NFC identifier and latest stored balance | These interoperable cards share system code `0003`; the exact brand is not always distinguishable |
 | Yangchengtong (Guangdong) | Balance on compatible CPU/City Union/T-Union cards; identifier fallback | Older MIFARE variants may require keys |
 | Shenzhentong (Guangdong) | Balance on compatible CPU/T-Union cards; identifier fallback | Older MIFARE variants may require keys |
@@ -21,6 +22,7 @@ Source repository: [justinfromhkg/Android_Octopus](https://github.com/justinfrom
 | Clipper (San Francisco Bay Area) | Balance from the public application on compatible classic DESFire cards | Newer account-based products may use a different layout |
 | Macau Pass | NFC identifier and technology metadata | Protected stored-value data is not decoded |
 | Touch 'n Go (Malaysia) | NFC identifier and technology metadata | Balance sectors require issuer MIFARE Classic keys |
+| Oyster (London) | MIFARE generation and safe Classic/DESFire chip metadata | First-generation sector data requires operator keys; newer DESFire Oyster cards do not expose a public balance file |
 
 “Identifier only” is intentional. The app does not contain issuer secrets,
 guess authentication keys, bypass access control, or claim a balance when a
@@ -58,9 +60,9 @@ All user-interface labels, scan instructions, status messages, balance labels,
 regions, and balance-availability explanations are localized. Technical NFC
 protocol names and raw card data remain in their standard form.
 
-## Octopus balance correction
+## Octopus physical-card balance and multi-system cards
 
-Version 0.4.0 removes the single hard-coded Octopus offset. Octopus Cards
+Version 0.4.0 removed the single hard-coded Octopus offset. Octopus Cards
 Limited documents a HK$35 convenience limit for On-Loan cards issued before
 1 October 2017 and HK$50 for newer On-Loan and mobile Octopus. That limit is
 also the offset used by the public community-decoded balance record, and the
@@ -71,6 +73,29 @@ result also displays the selected basis, raw HK$0.10 units, FeliCa PMm,
 system code, IDm, and raw balance block so a reading can be checked without
 hiding the conversion. Important balances should still be verified with an
 official Octopus reader.
+
+Version 0.5.0 also fixes Octopus + Shenzhentong/T-Union multi-system cards.
+Android may initially discover system `8005` on these cards, which is not the
+Octopus purse. The reader now requests the available FeliCa systems, explicitly
+polls Octopus system `8008`, and uses the Octopus-specific IDm returned by that
+poll before reading service `0117`. The result shows both Android's discovery
+system and the available FeliCa system codes for troubleshooting.
+
+## T-money and Oyster
+
+For compatible T-money cards, version 0.5.0 selects the public KS X 6924
+application `D4100000030001`, reads the public purse balance in Korean won,
+decodes available card information, and reads up to ten public 46-byte history
+records from SFI 4. The history can show top-up or transit type, amount, balance
+after the transaction, time, sequence, and terminal code. The app does not
+invent route or station names when the public record does not contain them.
+
+Oyster support is intentionally metadata-only. Older Oyster cards use MIFARE
+Classic sectors that require operator keys, and newer cards use DESFire without
+a freely readable Oyster balance file. The app identifies the available MIFARE
+generation and, for DESFire, sends only the standard read-only `GetVersion`
+command. It never guesses sector keys or presents an unavailable balance as
+zero.
 
 ## T-Union card and transaction details
 
@@ -106,6 +131,8 @@ Some cards still cannot expose a balance to a general Android NFC app:
 
 - EasyCard and Touch 'n Go store balance data in MIFARE Classic sectors that
   require issuer keys.
+- Oyster balance and journey data requires operator-controlled access; only
+  safe MIFARE chip metadata is shown.
 - iPASS and Macau Pass stored-value formats are protected or not publicly
   decoded in this project.
 - SimplyGo, newer Clipper cards, and some card generations are account-based or
@@ -164,7 +191,10 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 - `MainActivity.kt` enables Android reader mode for NFC-A, NFC-B, and NFC-F.
 - `nfc/FelicaProtocol.kt` handles Octopus and Japanese FeliCa reads.
 - `nfc/Iso7816TransitProtocol.kt` handles CEPAS and Chinese PBOC/T-Union APDUs.
+- `nfc/TMoneyProtocol.kt` handles the public T-money application, balance,
+  card information, and transaction records.
 - `nfc/DesfireTransitProtocol.kt` handles the public classic Clipper application.
+  It also parses standard DESFire version metadata for Oyster identification.
 - `nfc/TransitCardReader.kt` selects the reader for the chosen profile and
   provides safe identifier-only fallbacks.
 - `ui/` contains the Jetpack Compose screen and state holder.
@@ -183,6 +213,7 @@ not break.
 - [Android advanced NFC guide](https://developer.android.com/develop/connectivity/nfc/advanced-nfc)
 - [Android `IsoDep` API](https://developer.android.com/reference/android/nfc/tech/IsoDep)
 - [Android `NfcF` API](https://developer.android.com/reference/android/nfc/tech/NfcF)
+- [Android `MifareClassic` API](https://developer.android.com/reference/android/nfc/tech/MifareClassic)
 - [Official Octopus convenience-limit guidance](https://www.octopus.com.hk/en/consumer/customer-service/faq/get-your-octopus/about-octopus.html)
 - [Metrodroid Octopus offset history](https://github.com/metrodroid/metrodroid/blob/04a603ba639f7a270b7bdbf24158c7d601087c29/src/commonMain/kotlin/au/id/micolous/metrodroid/transit/octopus/OctopusData.kt)
 - [Metrodroid Suica-family constants](https://github.com/metrodroid/metrodroid/blob/04a603ba639f7a270b7bdbf24158c7d601087c29/src/commonMain/kotlin/au/id/micolous/metrodroid/transit/suica/SuicaConsts.kt)
@@ -194,6 +225,8 @@ not break.
 - [Metrodroid EasyCard parser](https://github.com/metrodroid/metrodroid/blob/04a603ba639f7a270b7bdbf24158c7d601087c29/src/commonMain/kotlin/au/id/micolous/metrodroid/transit/easycard/EasyCardTransitData.kt)
 - [Metrodroid Touch 'n Go parser](https://github.com/metrodroid/metrodroid/blob/04a603ba639f7a270b7bdbf24158c7d601087c29/src/commonMain/kotlin/au/id/micolous/metrodroid/transit/touchngo/TouchnGoTransitData.kt)
 - [Metrodroid Clipper parser](https://github.com/metrodroid/metrodroid/blob/04a603ba639f7a270b7bdbf24158c7d601087c29/src/commonMain/kotlin/au/id/micolous/metrodroid/transit/clipper/ClipperTransitData.kt)
+- [Metrodroid South Korea / T-money protocol notes](https://github-wiki-see.page/m/metrodroid/metrodroid/wiki/South-Korea)
+- [Metrodroid Oyster card-generation notes](https://github-wiki-see.page/m/metrodroid/metrodroid/wiki/Oyster)
 
 ## Apple version
 

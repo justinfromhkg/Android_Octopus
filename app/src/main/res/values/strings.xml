@@ -46,6 +46,7 @@
     <string name="balance_reason_legacy_cepas">No compatible legacy CEPAS purse was exposed. SimplyGo and newer account-based cards may not keep a local balance on the card.</string>
     <string name="balance_reason_china_variant">No compatible public CPU, City Union, or T-Union purse was exposed. Older MIFARE variants may require issuer keys.</string>
     <string name="balance_reason_clipper">The public classic Clipper DESFire balance file was not exposed. Newer account-based cards may use a different format.</string>
+    <string name="balance_reason_oyster">Oyster balance data is protected. First-generation cards require operator sector keys, while newer DESFire cards do not expose a public balance file.</string>
     <string name="balance_reason_not_exposed">The expected public balance record was not exposed by this card generation.</string>
 
     <string name="capability_estimated">Estimated balance and card identifier</string>
@@ -56,6 +57,8 @@
     <string name="capability_china_variant">Balance on compatible CPU, City Union, or T-Union cards; identifier fallback</string>
     <string name="capability_china_public">Public balance, card details, and recent transactions on compatible T-Union cards</string>
     <string name="capability_classic_clipper">Balance on cards with the public classic Clipper application</string>
+    <string name="capability_korean_public">Public balance, card details, and recent transactions on compatible T-money cards</string>
+    <string name="capability_oyster_protected">Card generation and safe chip metadata; Oyster balance data is protected</string>
 
     <string name="selected_profile">Selected profile</string>
     <string name="detected_card">Detected card/application</string>
@@ -69,6 +72,8 @@
     <string name="card_details">Card details</string>
     <string name="nfc_id_length">NFC identifier length (bytes)</string>
     <string name="manufacturer_parameters">FeliCa manufacturer parameters (PMm)</string>
+    <string name="android_discovery_system">Android discovery system</string>
+    <string name="felica_system_codes">Available FeliCa system codes</string>
     <string name="raw_balance_units">Raw balance units (HK$0.10)</string>
     <string name="octopus_balance_basis">Octopus balance basis</string>
     <string name="application_version">Application version</string>
@@ -77,11 +82,24 @@
     <string name="valid_until">Valid until</string>
     <string name="balance_purse_layout">Balance / debt purse indexes</string>
     <string name="transaction_records_read">Transaction records decoded</string>
-    <string name="recent_transactions">Recent T-Union transactions</string>
+    <string name="application_id">Application identifier (AID)</string>
+    <string name="card_type_code">Card type code</string>
+    <string name="issue_date">Issue date</string>
+    <string name="maximum_balance">Maximum balance</string>
+    <string name="card_generation">Card generation / chip family</string>
+    <string name="memory_size">Memory size</string>
+    <string name="sector_count">Sector count</string>
+    <string name="block_count">Block count</string>
+    <string name="desfire_hardware_version">DESFire hardware version</string>
+    <string name="desfire_software_version">DESFire software version</string>
+    <string name="desfire_chip_identifier">DESFire chip identifier</string>
+    <string name="recent_transactions">Recent transactions</string>
     <string name="transaction_code_notice">T-Union cards store numeric terminal, route, and station identifiers—not a reliable nationwide list of human-readable names. The app shows stored codes when no verified issuer-specific mapping is available. Metro records normally expose the exit terminal, not the boarding station.</string>
+    <string name="tmoney_transaction_notice">T-money records expose transaction type, amount, remaining balance, time, and terminal codes. Human-readable route and station names are not reliably stored in these public records.</string>
     <string name="transaction_title">%1$d · %2$s</string>
     <string name="transaction_time">Time</string>
     <string name="transaction_amount">Amount</string>
+    <string name="transaction_balance_after">Balance after transaction</string>
     <string name="bus_route_code">Bus / route code</string>
     <string name="boarding_station">Boarding station</string>
     <string name="alighting_station_code">Alighting station code</string>
@@ -96,11 +114,13 @@
     <string name="transaction_bus">Bus ride</string>
     <string name="transaction_metro">Metro / rail ride</string>
     <string name="transaction_purchase">Fare / purchase</string>
+    <string name="transaction_transit_ride">Transit ride</string>
     <string name="transaction_unknown">Other transaction</string>
 
     <string name="region_hong_kong">Hong Kong</string>
     <string name="region_taiwan">Taiwan</string>
     <string name="region_singapore">Singapore</string>
+    <string name="region_south_korea">South Korea</string>
     <string name="region_japan">Japan</string>
     <string name="region_guangzhou">Guangzhou, Guangdong</string>
     <string name="region_shenzhen">Shenzhen, Guangdong</string>
@@ -108,4 +128,5 @@
     <string name="region_san_francisco">San Francisco Bay Area</string>
     <string name="region_macau">Macau</string>
     <string name="region_malaysia">Malaysia</string>
+    <string name="region_london_uk">London, United Kingdom</string>
 </resources>

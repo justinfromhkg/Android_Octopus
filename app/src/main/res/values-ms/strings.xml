@@ -46,6 +46,7 @@
     <string name="balance_reason_legacy_cepas">Dompet CEPAS lama yang serasi tidak ditemui. SimplyGo dan kad berasaskan akaun yang lebih baharu mungkin tidak menyimpan baki setempat pada kad.</string>
     <string name="balance_reason_china_variant">Dompet CPU, City Union atau T-Union awam yang serasi tidak ditemui. Varian MIFARE lama mungkin memerlukan kunci pengeluar.</string>
     <string name="balance_reason_clipper">Fail baki Clipper DESFire klasik yang awam tidak ditemui. Kad berasaskan akaun yang lebih baharu mungkin menggunakan format lain.</string>
+    <string name="balance_reason_oyster">Data baki Oyster dilindungi. Kad generasi pertama memerlukan kunci sektor pengendali, manakala kad DESFire yang lebih baharu tidak menyediakan fail baki awam.</string>
     <string name="balance_reason_not_exposed">Generasi kad ini tidak menyediakan rekod baki awam yang dijangka.</string>
 
     <string name="capability_estimated">Anggaran baki dan pengecam kad</string>
@@ -56,6 +57,8 @@
     <string name="capability_china_variant">Baki pada kad CPU, City Union atau T-Union yang serasi; sandaran pengecam</string>
     <string name="capability_china_public">Baki awam, butiran kad dan transaksi terkini pada kad T-Union yang serasi</string>
     <string name="capability_classic_clipper">Baki pada kad dengan aplikasi Clipper klasik yang awam</string>
+    <string name="capability_korean_public">Baki awam, butiran kad dan transaksi terkini pada kad T-money yang serasi</string>
+    <string name="capability_oyster_protected">Generasi kad dan metadata cip yang selamat; data baki Oyster dilindungi</string>
 
     <string name="selected_profile">Profil dipilih</string>
     <string name="detected_card">Kad / aplikasi dikesan</string>
@@ -69,6 +72,8 @@
     <string name="card_details">Butiran kad</string>
     <string name="nfc_id_length">Panjang pengecam NFC (bait)</string>
     <string name="manufacturer_parameters">Parameter pengeluar FeliCa (PMm)</string>
+    <string name="android_discovery_system">Sistem pengesanan Android</string>
+    <string name="felica_system_codes">Kod sistem FeliCa tersedia</string>
     <string name="raw_balance_units">Unit baki mentah (HK$0.10)</string>
     <string name="octopus_balance_basis">Asas baki Octopus</string>
     <string name="application_version">Versi aplikasi</string>
@@ -77,11 +82,24 @@
     <string name="valid_until">Sah sehingga</string>
     <string name="balance_purse_layout">Indeks dompet baki / hutang</string>
     <string name="transaction_records_read">Rekod transaksi dinyahkod</string>
-    <string name="recent_transactions">Transaksi T-Union terkini</string>
+    <string name="application_id">Pengecam aplikasi (AID)</string>
+    <string name="card_type_code">Kod jenis kad</string>
+    <string name="issue_date">Tarikh dikeluarkan</string>
+    <string name="maximum_balance">Baki maksimum</string>
+    <string name="card_generation">Generasi kad / keluarga cip</string>
+    <string name="memory_size">Saiz memori</string>
+    <string name="sector_count">Bilangan sektor</string>
+    <string name="block_count">Bilangan blok</string>
+    <string name="desfire_hardware_version">Versi perkakasan DESFire</string>
+    <string name="desfire_software_version">Versi perisian DESFire</string>
+    <string name="desfire_chip_identifier">Pengecam cip DESFire</string>
+    <string name="recent_transactions">Transaksi terkini</string>
     <string name="transaction_code_notice">Kad T-Union menyimpan pengecam angka terminal, laluan dan stesen, bukan senarai nama kebangsaan yang boleh dipercayai. Aplikasi memaparkan kod pada kad apabila tiada pemetaan khusus pengeluar yang disahkan. Rekod metro biasanya hanya mendedahkan terminal keluar, bukan stesen naik.</string>
+    <string name="tmoney_transaction_notice">Rekod T-money menyediakan jenis transaksi, amaun, baki selepas transaksi, masa dan kod terminal. Nama laluan dan stesen yang boleh dibaca tidak disimpan dengan pasti dalam rekod awam ini.</string>
     <string name="transaction_title">%1$d · %2$s</string>
     <string name="transaction_time">Masa</string>
     <string name="transaction_amount">Amaun</string>
+    <string name="transaction_balance_after">Baki selepas transaksi</string>
     <string name="bus_route_code">Kod bas / laluan</string>
     <string name="boarding_station">Stesen naik</string>
     <string name="alighting_station_code">Kod stesen turun</string>
@@ -96,11 +114,13 @@
     <string name="transaction_bus">Perjalanan bas</string>
     <string name="transaction_metro">Perjalanan metro / rel</string>
     <string name="transaction_purchase">Tambang / pembelian</string>
+    <string name="transaction_transit_ride">Perjalanan transit</string>
     <string name="transaction_unknown">Transaksi lain</string>
 
     <string name="region_hong_kong">Hong Kong</string>
     <string name="region_taiwan">Taiwan</string>
     <string name="region_singapore">Singapura</string>
+    <string name="region_south_korea">Korea Selatan</string>
     <string name="region_japan">Jepun</string>
     <string name="region_guangzhou">Guangzhou, Guangdong</string>
     <string name="region_shenzhen">Shenzhen, Guangdong</string>
@@ -108,4 +128,5 @@
     <string name="region_san_francisco">Kawasan Teluk San Francisco</string>
     <string name="region_macau">Macau</string>
     <string name="region_malaysia">Malaysia</string>
+    <string name="region_london_uk">London, United Kingdom</string>
 </resources>

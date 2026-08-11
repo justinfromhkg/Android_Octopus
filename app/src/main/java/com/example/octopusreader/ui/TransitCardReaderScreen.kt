@@ -521,7 +521,13 @@ private fun ResultCard(scan: TransitCardScan) {
                     fontSize = 17.sp,
                 )
                 Text(
-                    text = stringResource(R.string.transaction_code_notice),
+                    text = stringResource(
+                        if (scan.selectedProfile == TransitCardProfile.T_MONEY) {
+                            R.string.tmoney_transaction_notice
+                        } else {
+                            R.string.transaction_code_notice
+                        },
+                    ),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 12.sp,
                     lineHeight = 17.sp,
@@ -581,12 +587,24 @@ private fun TransactionCard(index: Int, transaction: TransitTransaction) {
                 stringResource(R.string.transaction_amount),
                 formatBalance(
                     TransitBalance(
-                        currencyCode = "CNY",
+                        currencyCode = transaction.currencyCode,
                         amountMinor = transaction.amountMinor,
-                        fractionDigits = 2,
+                        fractionDigits = transaction.fractionDigits,
                     ),
                 ),
             )
+            transaction.balanceAfterMinor?.let {
+                ResultRow(
+                    stringResource(R.string.transaction_balance_after),
+                    formatBalance(
+                        TransitBalance(
+                            currencyCode = transaction.currencyCode,
+                            amountMinor = it,
+                            fractionDigits = transaction.fractionDigits,
+                        ),
+                    ),
+                )
+            }
             transaction.routeCode?.let {
                 ResultRow(stringResource(R.string.bus_route_code), it, monospace = true)
             }
@@ -625,9 +643,9 @@ private fun TransactionCard(index: Int, transaction: TransitTransaction) {
                     stringResource(R.string.transaction_overdraft),
                     formatBalance(
                         TransitBalance(
-                            currencyCode = "CNY",
+                            currencyCode = transaction.currencyCode,
                             amountMinor = transaction.overdraftMinor,
-                            fractionDigits = 2,
+                            fractionDigits = transaction.fractionDigits,
                         ),
                     ),
                 )
@@ -664,6 +682,8 @@ private fun localizedDetailLabel(type: TransitCardDetailType): String = stringRe
     when (type) {
         TransitCardDetailType.NFC_ID_LENGTH -> R.string.nfc_id_length
         TransitCardDetailType.MANUFACTURER_PARAMETERS -> R.string.manufacturer_parameters
+        TransitCardDetailType.ANDROID_DISCOVERY_SYSTEM -> R.string.android_discovery_system
+        TransitCardDetailType.FELICA_SYSTEM_CODES -> R.string.felica_system_codes
         TransitCardDetailType.RAW_BALANCE_UNITS -> R.string.raw_balance_units
         TransitCardDetailType.OCTOPUS_BALANCE_BASIS -> R.string.octopus_balance_basis
         TransitCardDetailType.APPLICATION_VERSION -> R.string.application_version
@@ -672,6 +692,17 @@ private fun localizedDetailLabel(type: TransitCardDetailType): String = stringRe
         TransitCardDetailType.VALID_UNTIL -> R.string.valid_until
         TransitCardDetailType.BALANCE_PURSE_LAYOUT -> R.string.balance_purse_layout
         TransitCardDetailType.TRANSACTION_RECORDS_READ -> R.string.transaction_records_read
+        TransitCardDetailType.APPLICATION_ID -> R.string.application_id
+        TransitCardDetailType.CARD_TYPE_CODE -> R.string.card_type_code
+        TransitCardDetailType.ISSUE_DATE -> R.string.issue_date
+        TransitCardDetailType.MAXIMUM_BALANCE -> R.string.maximum_balance
+        TransitCardDetailType.CARD_GENERATION -> R.string.card_generation
+        TransitCardDetailType.MEMORY_SIZE -> R.string.memory_size
+        TransitCardDetailType.SECTOR_COUNT -> R.string.sector_count
+        TransitCardDetailType.BLOCK_COUNT -> R.string.block_count
+        TransitCardDetailType.DESFIRE_HARDWARE_VERSION -> R.string.desfire_hardware_version
+        TransitCardDetailType.DESFIRE_SOFTWARE_VERSION -> R.string.desfire_software_version
+        TransitCardDetailType.DESFIRE_CHIP_IDENTIFIER -> R.string.desfire_chip_identifier
     },
 )
 
@@ -690,6 +721,7 @@ private fun localizedTransactionType(type: TransitTransactionType): String = str
         TransitTransactionType.BUS -> R.string.transaction_bus
         TransitTransactionType.METRO -> R.string.transaction_metro
         TransitTransactionType.PURCHASE -> R.string.transaction_purchase
+        TransitTransactionType.TRANSIT_RIDE -> R.string.transaction_transit_ride
         TransitTransactionType.UNKNOWN -> R.string.transaction_unknown
     },
 )
@@ -744,6 +776,7 @@ private fun localizedRegion(profile: TransitCardProfile): String = stringResourc
         -> R.string.region_taiwan
 
         TransitCardProfile.EZLINK -> R.string.region_singapore
+        TransitCardProfile.T_MONEY -> R.string.region_south_korea
         TransitCardProfile.SUICA,
         TransitCardProfile.PASMO,
         TransitCardProfile.ICOCA,
@@ -755,6 +788,7 @@ private fun localizedRegion(profile: TransitCardProfile): String = stringResourc
         TransitCardProfile.CLIPPER -> R.string.region_san_francisco
         TransitCardProfile.MACAU_PASS -> R.string.region_macau
         TransitCardProfile.TOUCH_N_GO -> R.string.region_malaysia
+        TransitCardProfile.OYSTER -> R.string.region_london_uk
     },
 )
 
@@ -769,6 +803,8 @@ private fun localizedCapability(support: BalanceReadSupport): String = stringRes
         BalanceReadSupport.CHINA_CARD_VARIANT -> R.string.capability_china_variant
         BalanceReadSupport.CHINA_PUBLIC_PURSE -> R.string.capability_china_public
         BalanceReadSupport.CLASSIC_CLIPPER -> R.string.capability_classic_clipper
+        BalanceReadSupport.KOREAN_PUBLIC_PURSE -> R.string.capability_korean_public
+        BalanceReadSupport.OYSTER_PROTECTED -> R.string.capability_oyster_protected
     },
 )
 
@@ -792,6 +828,8 @@ private fun localizedBalanceExplanation(scan: TransitCardScan): String {
             BalanceReadSupport.CHINA_CARD_VARIANT -> R.string.balance_reason_china_variant
             BalanceReadSupport.CHINA_PUBLIC_PURSE -> R.string.balance_reason_not_exposed
             BalanceReadSupport.CLASSIC_CLIPPER -> R.string.balance_reason_clipper
+            BalanceReadSupport.KOREAN_PUBLIC_PURSE -> R.string.balance_reason_not_exposed
+            BalanceReadSupport.OYSTER_PROTECTED -> R.string.balance_reason_oyster
         },
     )
 }
