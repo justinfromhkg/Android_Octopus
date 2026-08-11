@@ -1,6 +1,7 @@
 package com.example.octopusreader.nfc
 
 import java.time.Instant
+import java.time.LocalDateTime
 
 enum class TransitCardProfile(
     val displayName: String,
@@ -113,11 +114,63 @@ enum class BalanceReadSupport {
     CLASSIC_CLIPPER,
 }
 
+enum class OctopusBalanceBasis(val rawOffsetTenths: Long) {
+    PHYSICAL_PRE_2017(rawOffsetTenths = 350L),
+    NEW_OR_MOBILE(rawOffsetTenths = 500L),
+}
+
+data class TransitReadRequest(
+    val profile: TransitCardProfile,
+    val octopusBalanceBasis: OctopusBalanceBasis = OctopusBalanceBasis.PHYSICAL_PRE_2017,
+)
+
 data class TransitBalance(
     val currencyCode: String,
     val amountMinor: Long,
     val fractionDigits: Int,
     val isEstimated: Boolean = false,
+)
+
+enum class TransitCardDetailType {
+    NFC_ID_LENGTH,
+    MANUFACTURER_PARAMETERS,
+    RAW_BALANCE_UNITS,
+    OCTOPUS_BALANCE_BASIS,
+    APPLICATION_VERSION,
+    ISSUER_CODE,
+    VALID_FROM,
+    VALID_UNTIL,
+    BALANCE_PURSE_LAYOUT,
+    TRANSACTION_RECORDS_READ,
+}
+
+data class TransitCardDetail(
+    val type: TransitCardDetailType,
+    val value: String,
+    val monospace: Boolean = false,
+)
+
+enum class TransitTransactionType {
+    TOP_UP,
+    BUS,
+    METRO,
+    PURCHASE,
+    UNKNOWN,
+}
+
+data class TransitTransaction(
+    val type: TransitTransactionType,
+    val timestamp: LocalDateTime?,
+    val amountMinor: Long,
+    val transactionCode: Int,
+    val sequenceCounter: Int,
+    val overdraftMinor: Long,
+    val terminalCode: String,
+    val routeCode: String? = null,
+    val boardingStationCode: String? = null,
+    val alightingStationCode: String? = null,
+    val gateCode: String? = null,
+    val rawDataHex: String,
 )
 
 data class TransitCardScan(
@@ -130,6 +183,8 @@ data class TransitCardScan(
     val cardNumber: String? = null,
     val systemCode: String? = null,
     val rawDataHex: String? = null,
+    val details: List<TransitCardDetail> = emptyList(),
+    val transactions: List<TransitTransaction> = emptyList(),
     val note: String,
     val scannedAt: Instant,
 )

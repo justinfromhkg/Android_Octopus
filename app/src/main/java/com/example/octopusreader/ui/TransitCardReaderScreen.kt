@@ -46,9 +46,14 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.octopusreader.R
 import com.example.octopusreader.nfc.BalanceReadSupport
+import com.example.octopusreader.nfc.OctopusBalanceBasis
 import com.example.octopusreader.nfc.TransitBalance
+import com.example.octopusreader.nfc.TransitCardDetail
+import com.example.octopusreader.nfc.TransitCardDetailType
 import com.example.octopusreader.nfc.TransitCardProfile
 import com.example.octopusreader.nfc.TransitCardScan
+import com.example.octopusreader.nfc.TransitTransaction
+import com.example.octopusreader.nfc.TransitTransactionType
 import java.math.BigDecimal
 import java.text.NumberFormat
 import java.time.ZoneId
@@ -90,8 +95,10 @@ fun TransitCardReaderScreen(
             HeroCard()
             ProfileSelector(
                 selected = state.selectedProfile,
+                octopusBalanceBasis = state.octopusBalanceBasis,
                 enabled = !state.isReading && !state.isWaitingForCard,
                 onSelect = viewModel::selectProfile,
+                onSelectOctopusBalanceBasis = viewModel::selectOctopusBalanceBasis,
             )
             InstructionCard()
             StatusCard(state)
@@ -188,8 +195,10 @@ private fun HeroCard() {
 @Composable
 private fun ProfileSelector(
     selected: TransitCardProfile?,
+    octopusBalanceBasis: OctopusBalanceBasis,
     enabled: Boolean,
     onSelect: (TransitCardProfile) -> Unit,
+    onSelectOctopusBalanceBasis: (OctopusBalanceBasis) -> Unit,
 ) {
     var expanded by remember { mutableStateOf(false) }
 
@@ -271,6 +280,57 @@ private fun ProfileSelector(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 13.sp,
                     lineHeight = 18.sp,
+                )
+                if (selected == TransitCardProfile.OCTOPUS) {
+                    OctopusBalanceBasisSelector(
+                        selected = octopusBalanceBasis,
+                        enabled = enabled,
+                        onSelect = onSelectOctopusBalanceBasis,
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun OctopusBalanceBasisSelector(
+    selected: OctopusBalanceBasis,
+    enabled: Boolean,
+    onSelect: (OctopusBalanceBasis) -> Unit,
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    HorizontalDivider()
+    Text(
+        text = stringResource(R.string.octopus_card_generation),
+        fontWeight = FontWeight.SemiBold,
+    )
+    Text(
+        text = stringResource(R.string.octopus_card_generation_help),
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        fontSize = 12.sp,
+        lineHeight = 17.sp,
+    )
+    Box(modifier = Modifier.fillMaxWidth()) {
+        OutlinedButton(
+            onClick = { expanded = true },
+            enabled = enabled,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Text(localizedOctopusBalanceBasis(selected))
+        }
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+        ) {
+            OctopusBalanceBasis.entries.forEach { basis ->
+                DropdownMenuItem(
+                    text = { Text(localizedOctopusBalanceBasis(basis)) },
+                    onClick = {
+                        expanded = false
+                        onSelect(basis)
+                    },
                 )
             }
         }
@@ -425,6 +485,7 @@ private fun ResultCard(scan: TransitCardScan) {
                 stringResource(R.string.selected_profile),
                 localizedProfileName(scan.selectedProfile),
             )
+            ResultRow(stringResource(R.string.detected_card), scan.detectedName)
             ResultRow(stringResource(R.string.nfc_identifier), scan.cardId, monospace = true)
             scan.cardNumber?.let {
                 ResultRow(stringResource(R.string.card_number), it, monospace = true)
@@ -435,6 +496,40 @@ private fun ResultCard(scan: TransitCardScan) {
             ResultRow(stringResource(R.string.technologies), scan.technology)
             ResultRow(stringResource(R.string.read_protocol), scan.protocol)
             ResultRow(stringResource(R.string.scanned), timeFormatter.format(scan.scannedAt))
+
+            if (scan.details.isNotEmpty()) {
+                HorizontalDivider()
+                Text(
+                    text = stringResource(R.string.card_details),
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 17.sp,
+                )
+                scan.details.forEach { detail ->
+                    ResultRow(
+                        label = localizedDetailLabel(detail.type),
+                        value = localizedDetailValue(detail),
+                        monospace = detail.monospace,
+                    )
+                }
+            }
+
+            if (scan.transactions.isNotEmpty()) {
+                HorizontalDivider()
+                Text(
+                    text = stringResource(R.string.recent_transactions),
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 17.sp,
+                )
+                Text(
+                    text = stringResource(R.string.transaction_code_notice),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontSize = 12.sp,
+                    lineHeight = 17.sp,
+                )
+                scan.transactions.forEachIndexed { index, transaction ->
+                    TransactionCard(index + 1, transaction)
+                }
+            }
 
             scan.rawDataHex?.let { rawData ->
                 Text(
@@ -456,6 +551,96 @@ private fun ResultCard(scan: TransitCardScan) {
     }
 }
 
+@Composable
+private fun TransactionCard(index: Int, transaction: TransitTransaction) {
+    val dateTimeFormatter = DateTimeFormatter.ofLocalizedDateTime(
+        FormatStyle.MEDIUM,
+        FormatStyle.SHORT,
+    )
+    Surface(
+        color = MaterialTheme.colorScheme.surfaceVariant,
+        shape = RoundedCornerShape(14.dp),
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Column(
+            modifier = Modifier.padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Text(
+                text = stringResource(
+                    R.string.transaction_title,
+                    index,
+                    localizedTransactionType(transaction.type),
+                ),
+                fontWeight = FontWeight.Bold,
+            )
+            transaction.timestamp?.let {
+                ResultRow(stringResource(R.string.transaction_time), dateTimeFormatter.format(it))
+            }
+            ResultRow(
+                stringResource(R.string.transaction_amount),
+                formatBalance(
+                    TransitBalance(
+                        currencyCode = "CNY",
+                        amountMinor = transaction.amountMinor,
+                        fractionDigits = 2,
+                    ),
+                ),
+            )
+            transaction.routeCode?.let {
+                ResultRow(stringResource(R.string.bus_route_code), it, monospace = true)
+            }
+            if (transaction.type == TransitTransactionType.METRO) {
+                ResultRow(
+                    stringResource(R.string.boarding_station),
+                    transaction.boardingStationCode ?: stringResource(R.string.not_stored_on_card),
+                    monospace = transaction.boardingStationCode != null,
+                )
+                ResultRow(
+                    stringResource(R.string.alighting_station_code),
+                    transaction.alightingStationCode ?: stringResource(R.string.not_stored_on_card),
+                    monospace = transaction.alightingStationCode != null,
+                )
+                transaction.gateCode?.let {
+                    ResultRow(stringResource(R.string.gate_code), it, monospace = true)
+                }
+            }
+            ResultRow(
+                stringResource(R.string.terminal_operator_code),
+                transaction.terminalCode,
+                monospace = true,
+            )
+            ResultRow(
+                stringResource(R.string.transaction_type_code),
+                "%02X".format(transaction.transactionCode),
+                monospace = true,
+            )
+            ResultRow(
+                stringResource(R.string.transaction_sequence),
+                transaction.sequenceCounter.toString(),
+                monospace = true,
+            )
+            if (transaction.overdraftMinor > 0) {
+                ResultRow(
+                    stringResource(R.string.transaction_overdraft),
+                    formatBalance(
+                        TransitBalance(
+                            currencyCode = "CNY",
+                            amountMinor = transaction.overdraftMinor,
+                            fractionDigits = 2,
+                        ),
+                    ),
+                )
+            }
+            ResultRow(
+                stringResource(R.string.raw_transaction_record),
+                transaction.rawDataHex,
+                monospace = true,
+            )
+        }
+    }
+}
+
 private fun formatBalance(balance: TransitBalance): String {
     val formatter = NumberFormat.getCurrencyInstance(Locale.getDefault()).apply {
         currency = Currency.getInstance(balance.currencyCode)
@@ -465,6 +650,49 @@ private fun formatBalance(balance: TransitBalance): String {
     val amount = BigDecimal.valueOf(balance.amountMinor).movePointLeft(balance.fractionDigits)
     return formatter.format(amount)
 }
+
+@Composable
+private fun localizedOctopusBalanceBasis(basis: OctopusBalanceBasis): String = stringResource(
+    when (basis) {
+        OctopusBalanceBasis.PHYSICAL_PRE_2017 -> R.string.octopus_basis_legacy_physical
+        OctopusBalanceBasis.NEW_OR_MOBILE -> R.string.octopus_basis_new_or_mobile
+    },
+)
+
+@Composable
+private fun localizedDetailLabel(type: TransitCardDetailType): String = stringResource(
+    when (type) {
+        TransitCardDetailType.NFC_ID_LENGTH -> R.string.nfc_id_length
+        TransitCardDetailType.MANUFACTURER_PARAMETERS -> R.string.manufacturer_parameters
+        TransitCardDetailType.RAW_BALANCE_UNITS -> R.string.raw_balance_units
+        TransitCardDetailType.OCTOPUS_BALANCE_BASIS -> R.string.octopus_balance_basis
+        TransitCardDetailType.APPLICATION_VERSION -> R.string.application_version
+        TransitCardDetailType.ISSUER_CODE -> R.string.issuer_code
+        TransitCardDetailType.VALID_FROM -> R.string.valid_from
+        TransitCardDetailType.VALID_UNTIL -> R.string.valid_until
+        TransitCardDetailType.BALANCE_PURSE_LAYOUT -> R.string.balance_purse_layout
+        TransitCardDetailType.TRANSACTION_RECORDS_READ -> R.string.transaction_records_read
+    },
+)
+
+@Composable
+private fun localizedDetailValue(detail: TransitCardDetail): String =
+    if (detail.type == TransitCardDetailType.OCTOPUS_BALANCE_BASIS) {
+        localizedOctopusBalanceBasis(OctopusBalanceBasis.valueOf(detail.value))
+    } else {
+        detail.value
+    }
+
+@Composable
+private fun localizedTransactionType(type: TransitTransactionType): String = stringResource(
+    when (type) {
+        TransitTransactionType.TOP_UP -> R.string.transaction_top_up
+        TransitTransactionType.BUS -> R.string.transaction_bus
+        TransitTransactionType.METRO -> R.string.transaction_metro
+        TransitTransactionType.PURCHASE -> R.string.transaction_purchase
+        TransitTransactionType.UNKNOWN -> R.string.transaction_unknown
+    },
+)
 
 @Composable
 private fun scanButtonText(state: TransitCardReaderUiState): String = when {

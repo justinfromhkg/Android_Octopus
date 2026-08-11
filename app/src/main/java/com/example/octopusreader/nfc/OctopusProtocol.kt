@@ -10,7 +10,11 @@ internal object OctopusProtocol {
         return FelicaProtocol.buildReadCommand(idm, BALANCE_SERVICE_CODE)
     }
 
-    fun parseBalanceReadResponse(response: ByteArray, expectedIdm: ByteArray): BalanceData {
+    fun parseBalanceReadResponse(
+        response: ByteArray,
+        expectedIdm: ByteArray,
+        balanceBasis: OctopusBalanceBasis,
+    ): BalanceData {
         val block = try {
             FelicaProtocol.parseReadResponse(response, expectedIdm)
         } catch (error: FelicaProtocolException) {
@@ -20,15 +24,21 @@ internal object OctopusProtocol {
             (block[1].unsigned.toLong() shl 16) or
             (block[2].unsigned.toLong() shl 8) or
             block[3].unsigned.toLong()
+        if (rawBalance > 100_000L) {
+            throw OctopusProtocolException("The Octopus balance record was outside the expected range.")
+        }
 
         return BalanceData(
             rawBalance = rawBalance,
-            estimatedBalanceHkd = decodeEstimatedBalance(rawBalance),
+            estimatedBalanceHkd = decodeEstimatedBalance(rawBalance, balanceBasis),
             rawBlock = block,
         )
     }
 
-    fun decodeEstimatedBalance(rawBalance: Long): Double = (rawBalance - 500L) / 10.0
+    fun decodeEstimatedBalance(
+        rawBalance: Long,
+        balanceBasis: OctopusBalanceBasis,
+    ): Double = (rawBalance - balanceBasis.rawOffsetTenths) / 10.0
 
     private val Byte.unsigned: Int
         get() = toInt() and 0xFF

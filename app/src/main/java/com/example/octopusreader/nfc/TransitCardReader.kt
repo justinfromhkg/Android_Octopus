@@ -6,15 +6,17 @@ import android.nfc.tech.IsoDep
 import android.nfc.tech.NfcF
 import java.io.IOException
 import java.time.Instant
+import java.time.format.DateTimeFormatter
 
 object TransitCardReader {
     private val tUnionAid = "A000000632010105".hexToByteArray()
     private val cityUnionAid = "A00000000386980701".hexToByteArray()
     private val shenzhenAid = "PAY.SZT".encodeToByteArray()
 
-    fun read(tag: Tag, profile: TransitCardProfile): CardReadResult = try {
+    fun read(tag: Tag, request: TransitReadRequest): CardReadResult = try {
+        val profile = request.profile
         when (profile) {
-            TransitCardProfile.OCTOPUS -> readOctopus(tag)
+            TransitCardProfile.OCTOPUS -> readOctopus(tag, request.octopusBalanceBasis)
             TransitCardProfile.SUICA,
             TransitCardProfile.PASMO,
             TransitCardProfile.ICOCA,
@@ -42,7 +44,10 @@ object TransitCardReader {
         CardReadResult.Failure(error.message ?: "The card returned data in an unexpected format.")
     }
 
-    private fun readOctopus(tag: Tag): CardReadResult {
+    private fun readOctopus(
+        tag: Tag,
+        balanceBasis: OctopusBalanceBasis,
+    ): CardReadResult {
         val nfcF = NfcF.get(tag)
             ?: return CardReadResult.Failure("Octopus requires an NFC-F (FeliCa) card.")
         val idm = tag.id
@@ -61,7 +66,7 @@ object TransitCardReader {
             nfcF.connect()
             nfcF.timeout = 3_000
             val response = nfcF.transceive(OctopusProtocol.buildBalanceReadCommand(idm))
-            val balance = OctopusProtocol.parseBalanceReadResponse(response, idm)
+            val balance = OctopusProtocol.parseBalanceReadResponse(response, idm, balanceBasis)
             success(
                 tag = tag,
                 profile = TransitCardProfile.OCTOPUS,
@@ -69,13 +74,29 @@ object TransitCardReader {
                 protocol = "FeliCa Read Without Encryption",
                 balance = TransitBalance(
                     currencyCode = "HKD",
-                    amountMinor = (balance.rawBalance - 500L) * 10L,
+                    amountMinor = (balance.rawBalance - balanceBasis.rawOffsetTenths) * 10L,
                     fractionDigits = 2,
                     isEstimated = true,
                 ),
                 systemCode = systemCode.toUpperHex(),
                 rawData = balance.rawBlock,
-                note = "Community-decoded estimate. Verify important amounts with an official Octopus reader.",
+                details = listOf(
+                    TransitCardDetail(
+                        type = TransitCardDetailType.MANUFACTURER_PARAMETERS,
+                        value = nfcF.manufacturer.toUpperHex(),
+                        monospace = true,
+                    ),
+                    TransitCardDetail(
+                        type = TransitCardDetailType.RAW_BALANCE_UNITS,
+                        value = balance.rawBalance.toString(),
+                        monospace = true,
+                    ),
+                    TransitCardDetail(
+                        type = TransitCardDetailType.OCTOPUS_BALANCE_BASIS,
+                        value = balanceBasis.name,
+                    ),
+                ),
+                note = "The selected Octopus convenience-limit basis was applied to this read-only community-decoded estimate.",
             )
         } catch (error: OctopusProtocolException) {
             success(
@@ -85,6 +106,13 @@ object TransitCardReader {
                 protocol = "FeliCa Read Without Encryption",
                 balance = null,
                 systemCode = systemCode.toUpperHex(),
+                details = listOf(
+                    TransitCardDetail(
+                        type = TransitCardDetailType.MANUFACTURER_PARAMETERS,
+                        value = nfcF.manufacturer.toUpperHex(),
+                        monospace = true,
+                    ),
+                ),
                 note = error.message ?: "The Octopus balance record was not exposed.",
             )
         } finally {
@@ -232,19 +260,33 @@ object TransitCardReader {
                     extraNote = "No compatible public PBOC/T-Union application was found; balance data may be protected.",
                 )
             } else {
-                val balanceData = try {
-                    Iso7816TransitProtocol.unwrap(
-                        isoDep.transceive(Iso7816TransitProtocol.getChinaBalance()),
+                val isTUnion = selected.second.contentEquals(tUnionAid)
+                var balanceIndex = 0
+                var balanceData = try {
+                    transceiveIso7816(
+                        isoDep,
+                        Iso7816TransitProtocol.getChinaBalance(),
                     )
                 } catch (_: Iso7816ProtocolException) {
                     null
                 }
-                val isTUnion = selected.second.contentEquals(tUnionAid)
+                if (isTUnion && balanceData == null) {
+                    balanceIndex = 3
+                    balanceData = try {
+                        transceiveIso7816(
+                            isoDep,
+                            Iso7816TransitProtocol.getChinaBalance(balanceIndex = balanceIndex),
+                        )
+                    } catch (_: Iso7816ProtocolException) {
+                        null
+                    }
+                }
                 val debtData = if (isTUnion && balanceData != null) {
                     try {
-                        Iso7816TransitProtocol.unwrap(
-                            isoDep.transceive(
-                                Iso7816TransitProtocol.getChinaBalance(balanceIndex = 1),
+                        transceiveIso7816(
+                            isoDep,
+                            Iso7816TransitProtocol.getChinaBalance(
+                                balanceIndex = if (balanceIndex == 0) 1 else 2,
                             ),
                         )
                     } catch (_: Iso7816ProtocolException) {
@@ -252,6 +294,79 @@ object TransitCardReader {
                     }
                 } else {
                     null
+                }
+                val cardInfoData = if (isTUnion) {
+                    try {
+                        transceiveIso7816(
+                            isoDep,
+                            Iso7816TransitProtocol.readBinaryBySfi(0x15),
+                        )
+                    } catch (_: Iso7816ProtocolException) {
+                        null
+                    }
+                } else {
+                    null
+                }
+                val cardInfo = cardInfoData?.let { data ->
+                    runCatching { Iso7816TransitProtocol.parseTUnionCardInfo(data) }.getOrNull()
+                }
+                val transactionRecords = if (isTUnion) {
+                    readTUnionTransactionRecords(isoDep)
+                } else {
+                    emptyList()
+                }
+                val transactions = transactionRecords.mapNotNull { record ->
+                    Iso7816TransitProtocol.parseTUnionTransaction(record)
+                }
+                val details = buildList {
+                    cardInfo?.let { info ->
+                        add(
+                            TransitCardDetail(
+                                TransitCardDetailType.APPLICATION_VERSION,
+                                info.applicationVersion.toString(),
+                            ),
+                        )
+                        add(
+                            TransitCardDetail(
+                                TransitCardDetailType.ISSUER_CODE,
+                                info.issuerCode,
+                                monospace = true,
+                            ),
+                        )
+                        info.validFrom?.let {
+                            add(
+                                TransitCardDetail(
+                                    TransitCardDetailType.VALID_FROM,
+                                    it.format(DateTimeFormatter.ISO_LOCAL_DATE),
+                                ),
+                            )
+                        }
+                        info.validUntil?.let {
+                            add(
+                                TransitCardDetail(
+                                    TransitCardDetailType.VALID_UNTIL,
+                                    it.format(DateTimeFormatter.ISO_LOCAL_DATE),
+                                ),
+                            )
+                        }
+                    }
+                    if (isTUnion) {
+                        if (balanceData != null) {
+                            add(
+                                TransitCardDetail(
+                                    TransitCardDetailType.BALANCE_PURSE_LAYOUT,
+                                    if (balanceIndex == 0) "0 / 1" else "3 / 2",
+                                    monospace = true,
+                                ),
+                            )
+                        }
+                        add(
+                            TransitCardDetail(
+                                TransitCardDetailType.TRANSACTION_RECORDS_READ,
+                                transactions.size.toString(),
+                            ),
+                        )
+                    }
                 }
                 success(
                     tag = tag,
@@ -269,9 +384,14 @@ object TransitCardReader {
                             fractionDigits = 2,
                         )
                     },
+                    cardNumber = cardInfo?.serialNumber,
                     rawData = balanceData,
+                    details = details,
+                    transactions = transactions,
                     note = if (balanceData == null) {
-                        "The transit application was identified, but this card did not expose its stored balance."
+                        "The transit application was identified, but this card did not expose its stored balance. Public card details and history are shown when available."
+                    } else if (transactions.isNotEmpty()) {
+                        "Read from the public transit purse and history records. Route and station names require issuer-specific databases, so the card's stored codes are preserved when a reliable name is unavailable."
                     } else {
                         "Read from the card's public transit purse. No write command was sent."
                     },
@@ -358,6 +478,39 @@ object TransitCardReader {
         }
     }
 
+    private fun transceiveIso7816(isoDep: IsoDep, command: ByteArray): ByteArray {
+        var response = isoDep.transceive(command)
+        val corrected = Iso7816TransitProtocol.correctedLengthCommand(command, response)
+        if (corrected != null) {
+            response = isoDep.transceive(corrected)
+        }
+        return Iso7816TransitProtocol.unwrap(response)
+    }
+
+    private fun readTUnionTransactionRecords(isoDep: IsoDep): List<ByteArray> {
+        val records = mutableListOf<ByteArray>()
+        for (recordNumber in 1..10) {
+            val command = Iso7816TransitProtocol.readRecordBySfi(
+                sfi = 0x18,
+                recordNumber = recordNumber,
+            )
+            var response = isoDep.transceive(command)
+            val corrected = Iso7816TransitProtocol.correctedLengthCommand(command, response)
+            if (corrected != null) {
+                response = isoDep.transceive(corrected)
+            }
+            if (Iso7816TransitProtocol.isRecordNotFound(response)) break
+            val record = try {
+                Iso7816TransitProtocol.unwrap(response)
+            } catch (_: Iso7816ProtocolException) {
+                break
+            }
+            if (record.size < 23) break
+            records += record
+        }
+        return records
+    }
+
     private fun readIdentificationOnly(
         tag: Tag,
         profile: TransitCardProfile,
@@ -365,7 +518,7 @@ object TransitCardReader {
     ): CardReadResult = success(
         tag = tag,
         profile = profile,
-        detectedName = "${profile.displayName} profile",
+        detectedName = profile.displayName,
         protocol = technologyNames(tag),
         balance = null,
         note = listOfNotNull(
@@ -383,6 +536,8 @@ object TransitCardReader {
         cardNumber: String? = null,
         systemCode: String? = null,
         rawData: ByteArray? = null,
+        details: List<TransitCardDetail> = emptyList(),
+        transactions: List<TransitTransaction> = emptyList(),
         note: String,
     ) = CardReadResult.Success(
         TransitCardScan(
@@ -395,6 +550,13 @@ object TransitCardReader {
             cardNumber = cardNumber,
             systemCode = systemCode,
             rawDataHex = rawData?.toUpperHex(" "),
+            details = listOf(
+                TransitCardDetail(
+                    type = TransitCardDetailType.NFC_ID_LENGTH,
+                    value = tag.id.size.toString(),
+                ),
+            ) + details,
+            transactions = transactions,
             note = note,
             scannedAt = Instant.now(),
         ),
