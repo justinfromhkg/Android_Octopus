@@ -1,9 +1,48 @@
 package com.example.octopusreader.nfc
 
 internal object FelicaProtocol {
+    private const val POLLING = 0x00
+    private const val POLLING_RESPONSE = 0x01
     private const val READ_WITHOUT_ENCRYPTION = 0x06
     private const val READ_WITHOUT_ENCRYPTION_RESPONSE = 0x07
     private const val BLOCK_SIZE = 16
+
+    fun buildPollingCommand(systemCode: Int): ByteArray {
+        require(systemCode in 0..0xFFFF) { "A FeliCa system code must contain 2 bytes." }
+        return byteArrayOf(
+            0x06,
+            POLLING.toByte(),
+            (systemCode shr 8).toByte(),
+            systemCode.toByte(),
+            0x01,
+            0x00,
+        )
+    }
+
+    fun parsePollingResponse(
+        response: ByteArray,
+        expectedSystemCode: Int,
+    ): FelicaPollingData {
+        if (response.size < 18 || response[0].unsigned != response.size) {
+            throw FelicaProtocolException("The card returned an invalid polling response.")
+        }
+        if (response[1].unsigned != POLLING_RESPONSE) {
+            throw FelicaProtocolException("The card returned an unexpected polling response.")
+        }
+        val returnedSystemCode = if (response.size >= 20) {
+            (response[18].unsigned shl 8) or response[19].unsigned
+        } else {
+            expectedSystemCode
+        }
+        if (returnedSystemCode != expectedSystemCode) {
+            throw FelicaProtocolException("The requested FeliCa system was not selected.")
+        }
+        return FelicaPollingData(
+            idm = response.copyOfRange(2, 10),
+            manufacturerParameters = response.copyOfRange(10, 18),
+            systemCode = returnedSystemCode,
+        )
+    }
 
     fun buildReadCommand(idm: ByteArray, serviceCode: Int, blockNumber: Int = 0): ByteArray {
         require(idm.size == 8) { "A FeliCa IDm must contain 8 bytes." }
@@ -60,6 +99,12 @@ internal object FelicaProtocol {
     private val Byte.unsigned: Int
         get() = toInt() and 0xFF
 }
+
+internal data class FelicaPollingData(
+    val idm: ByteArray,
+    val manufacturerParameters: ByteArray,
+    val systemCode: Int,
+)
 
 internal class FelicaProtocolException(message: String) : Exception(message)
 

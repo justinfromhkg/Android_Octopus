@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">マルチ交通系ICカードリーダー</string>
+    <string name="app_language">アプリの言語</string>
     <string name="hero_title">1台のスマートフォンで、さまざまな交通系ICカードを。</string>
     <string name="hero_subtitle">対応する実物カードを、データを送信せずに読み取ります。</string>
     <string name="select_card_title">カードを選択</string>
-    <string name="select_card_description">必須：スキャン前に正しいカードを選択してください。選択したカードに合う読み取り専用NFCプロトコルを使用します。</string>
+    <string name="select_card_description">初期設定は自動識別です。公開情報だけでは識別できない保護カードの場合のみ、個別のカード種類を選択してください。</string>
+    <string name="automatic_detection">自動識別</string>
     <string name="choose_card">交通系ICカードを選択</string>
     <string name="no_card_selected">カードが選択されていません</string>
     <string name="octopus_card_generation">Octopusカードの世代</string>
@@ -14,13 +16,14 @@
     <string name="card_name_format">%1$s · %2$s</string>
     <string name="card_selection_format">%1$s — %2$s</string>
     <string name="how_to_scan">スキャン方法</string>
-    <string name="scan_step_1">カードに合うシステムを選択します。</string>
+    <string name="scan_step_1">通常は自動識別のまま、必要な場合だけ手動プロファイルを選びます。</string>
     <string name="scan_step_2">「スキャン」ボタンをタップします。</string>
     <string name="scan_step_3">実物カードをスマートフォンのNFCアンテナに当て、動かさないでください。</string>
     <string name="button_reading">読み取り中…</string>
     <string name="button_waiting">カードを待機中…</string>
     <string name="button_select_first">先にカードを選択</string>
     <string name="button_scan_card">%1$sをスキャン</string>
+    <string name="button_scan_automatic">スキャンしてカードを識別</string>
     <string name="open_nfc_settings">NFC設定を開く</string>
     <string name="privacy_notice">読み取り専用：チャージ、支払い、認証キーの推測、カードへの書き込みは行いません。結果はこの画面だけに表示され、アップロードされません。</string>
 
@@ -34,6 +37,10 @@
     <string name="status_reading">%1$sを読み取り中…</string>
     <string name="status_read_success">%1$sを正常に読み取りました。</string>
     <string name="status_read_failed">カードを読み取れませんでした。選択したカードの種類を確認し、カードを動かさずにもう一度お試しください。</string>
+    <string name="status_auto_ready">自動識別の準備ができました。スキャンをタップしてください。</string>
+    <string name="status_hold_any_card">交通系カードを端末背面のNFCアンテナに平らに当ててください。</string>
+    <string name="status_auto_reading">対応するすべてのカードアプリを識別しています…</string>
+    <string name="status_auto_read_success">識別完了：%1$d個のカードアプリが見つかりました。</string>
 
     <string name="estimated_balance">推定残高</string>
     <string name="balance">残高</string>
@@ -48,6 +55,7 @@
     <string name="balance_reason_clipper">公開されている従来型Clipper DESFire残高ファイルが見つかりません。新しいアカウントベースのカードは別の形式を使用する場合があります。</string>
     <string name="balance_reason_oyster">Oysterの残高データは保護されています。初代カードには事業者のセクターキーが必要で、新しいDESFireカードには公開残高ファイルがありません。</string>
     <string name="balance_reason_not_exposed">この世代のカードでは、想定される公開残高記録が提供されていません。</string>
+    <string name="balance_reason_automatic_unknown">カードは検出されましたが、公開アプリから発行者を一意に識別できませんでした。種類が分かる場合は手動プロファイルを選択してください。</string>
 
     <string name="capability_estimated">推定残高とカード識別子</string>
     <string name="capability_issuer_keys">カード識別子のみ。残高セクターには発行者キーが必要です</string>
@@ -57,10 +65,12 @@
     <string name="capability_china_variant">対応するCPU、City Union、T-Unionカードの残高。非対応時は識別子のみ</string>
     <string name="capability_china_public">対応するT-Unionカードの公開残高、カード詳細、最近の取引</string>
     <string name="capability_classic_clipper">公開された従来型Clipperアプリを持つカードの残高</string>
+    <string name="capability_automatic">対応する公開読み取り専用アプリをすべて確認し、検出した各コアを表示します</string>
     <string name="capability_korean_public">対応するT-moneyカードの公開残高、カード詳細、最近の取引</string>
     <string name="capability_oyster_protected">カード世代と安全なチップ情報。Oyster残高データは保護されています</string>
 
     <string name="selected_profile">選択したカード</string>
+    <string name="multiple_applications_detected">%1$d個のカードアプリを検出</string>
     <string name="detected_card">検出したカード／アプリ</string>
     <string name="nfc_identifier">NFC識別子</string>
     <string name="card_number">カード番号</string>
@@ -129,4 +139,5 @@
     <string name="region_macau">マカオ</string>
     <string name="region_malaysia">マレーシア</string>
     <string name="region_london_uk">英国・ロンドン</string>
+    <string name="region_supported_cards">すべての対応地域</string>
 </resources>

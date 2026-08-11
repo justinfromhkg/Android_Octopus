@@ -8,14 +8,13 @@ class TransitCardProfileTest {
     fun `all requested transit systems are available`() {
         assertEquals(
             listOf(
+                "Automatic detection",
                 "Octopus",
                 "EasyCard",
                 "iPASS",
                 "EZ-Link",
                 "T-money",
-                "Suica",
-                "PASMO",
-                "ICOCA",
+                "Japan Transit IC",
                 "Yangchengtong",
                 "Shenzhentong",
                 "China T-Union",
@@ -33,7 +32,7 @@ class TransitCardProfileTest {
         assertEquals("八達通", TransitCardProfile.OCTOPUS.localName)
         assertEquals("悠遊卡", TransitCardProfile.EASYCARD.localName)
         assertEquals("一卡通", TransitCardProfile.IPASS.localName)
-        assertEquals("スイカ", TransitCardProfile.SUICA.localName)
+        assertEquals("交通系ICカード", TransitCardProfile.JAPAN_TRANSIT_IC.localName)
         assertEquals("羊城通", TransitCardProfile.YANGCHENGTONG.localName)
         assertEquals("澳門通", TransitCardProfile.MACAU_PASS.localName)
         assertEquals("티머니", TransitCardProfile.T_MONEY.localName)

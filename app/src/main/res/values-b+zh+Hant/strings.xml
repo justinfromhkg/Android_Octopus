@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">多卡交通卡讀卡器</string>
+    <string name="app_language">應用程式語言</string>
     <string name="hero_title">一部手機，多張交通卡。</string>
     <string name="hero_subtitle">無需上傳資料，即可讀取支援的實體卡。</string>
     <string name="select_card_title">選擇交通卡</string>
-    <string name="select_card_description">必須先選擇正確的卡片，應用程式才會使用相符的唯讀 NFC 通訊協定。</string>
+    <string name="select_card_description">預設使用自動識別。只有受保護或無法公開識別的卡片，才需要手動選擇卡片類型。</string>
+    <string name="automatic_detection">自動識別</string>
     <string name="choose_card">選擇交通卡</string>
     <string name="no_card_selected">尚未選擇卡片</string>
     <string name="octopus_card_generation">八達通卡片年代</string>
@@ -14,13 +16,14 @@
     <string name="card_name_format">%1$s · %2$s</string>
     <string name="card_selection_format">%1$s — %2$s</string>
     <string name="how_to_scan">如何掃描</string>
-    <string name="scan_step_1">選擇相符的交通卡系統。</string>
+    <string name="scan_step_1">保留自動識別，或在需要時手動選擇卡片類型。</string>
     <string name="scan_step_2">點按「掃描」按鈕。</string>
     <string name="scan_step_3">將實體卡固定貼近手機的 NFC 天線。</string>
     <string name="button_reading">正在讀取…</string>
     <string name="button_waiting">正在等待卡片…</string>
     <string name="button_select_first">請先選擇卡片</string>
     <string name="button_scan_card">掃描 %1$s</string>
+    <string name="button_scan_automatic">掃描並識別卡片</string>
     <string name="open_nfc_settings">開啟 NFC 設定</string>
     <string name="privacy_notice">僅供讀取：不提供增值、付款、驗證金鑰猜測或卡片寫入。結果只會留在此畫面，不會上傳。</string>
 
@@ -34,6 +37,10 @@
     <string name="status_reading">正在讀取 %1$s…</string>
     <string name="status_read_success">已成功讀取 %1$s。</string>
     <string name="status_read_failed">無法讀取卡片。請檢查所選卡片類型，保持卡片不動後再試一次。</string>
+    <string name="status_auto_ready">自動識別已準備好，請點按掃描。</string>
+    <string name="status_hold_any_card">請將交通卡平放在手機背面的 NFC 天線位置。</string>
+    <string name="status_auto_reading">正在識別所有相容的卡片應用程式…</string>
+    <string name="status_auto_read_success">識別完成：找到 %1$d 個卡片應用程式。</string>
 
     <string name="estimated_balance">估算餘額</string>
     <string name="balance">餘額</string>
@@ -48,6 +55,7 @@
     <string name="balance_reason_clipper">找不到公開的傳統 Clipper DESFire 餘額檔案。較新的帳戶制卡片可能使用其他格式。</string>
     <string name="balance_reason_oyster">Oyster 餘額資料受保護。第一代卡片需要營運機構的扇區金鑰，較新的 DESFire 卡則沒有公開餘額檔案。</string>
     <string name="balance_reason_not_exposed">此代卡片沒有提供預期的公開餘額記錄。</string>
+    <string name="balance_reason_automatic_unknown">已偵測到卡片，但沒有公開應用程式能可靠識別發卡機構。如知道卡片類型，請手動選擇。</string>
 
     <string name="capability_estimated">估算餘額和卡片識別碼</string>
     <string name="capability_issuer_keys">只可讀取卡片識別碼；餘額扇區需要發卡機構金鑰</string>
@@ -57,10 +65,12 @@
     <string name="capability_china_variant">相容 CPU、城市一卡通或交通聯合卡可讀取餘額，否則只讀取識別碼</string>
     <string name="capability_china_public">相容交通聯合卡的公開餘額、卡片資料及近期交易</string>
     <string name="capability_classic_clipper">可讀取具有公開傳統 Clipper 應用程式的卡片餘額</string>
+    <string name="capability_automatic">探測所有相容的公開唯讀應用程式，並顯示偵測到的每個核心</string>
     <string name="capability_korean_public">相容 T-money 卡的公開餘額、卡片資料及近期交易</string>
     <string name="capability_oyster_protected">卡片世代及安全晶片中繼資料；Oyster 餘額資料受保護</string>
 
     <string name="selected_profile">所選卡片類型</string>
+    <string name="multiple_applications_detected">偵測到 %1$d 個卡片應用程式</string>
     <string name="detected_card">偵測到的卡片／應用程式</string>
     <string name="nfc_identifier">NFC 識別碼</string>
     <string name="card_number">卡號</string>
@@ -129,4 +139,5 @@
     <string name="region_macau">澳門</string>
     <string name="region_malaysia">馬來西亞</string>
     <string name="region_london_uk">英國倫敦</string>
+    <string name="region_supported_cards">所有支援地區</string>
 </resources>

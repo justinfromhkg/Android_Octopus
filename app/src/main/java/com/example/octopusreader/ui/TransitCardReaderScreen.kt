@@ -66,6 +66,7 @@ import java.util.Locale
 @Composable
 fun TransitCardReaderScreen(
     viewModel: TransitCardReaderViewModel,
+    onOpenLanguageSettings: () -> Unit,
     onOpenNfcSettings: () -> Unit,
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -100,10 +101,27 @@ fun TransitCardReaderScreen(
                 onSelect = viewModel::selectProfile,
                 onSelectOctopusBalanceBasis = viewModel::selectOctopusBalanceBasis,
             )
+            TextButton(
+                onClick = onOpenLanguageSettings,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(stringResource(R.string.app_language))
+            }
             InstructionCard()
             StatusCard(state)
 
-            state.lastScan?.let { scan ->
+            if (state.lastScans.size > 1) {
+                Text(
+                    text = stringResource(
+                        R.string.multiple_applications_detected,
+                        state.lastScans.size,
+                    ),
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp,
+                )
+            }
+            state.lastScans.forEach { scan ->
                 ResultCard(scan)
             }
 
@@ -281,7 +299,10 @@ private fun ProfileSelector(
                     fontSize = 13.sp,
                     lineHeight = 18.sp,
                 )
-                if (selected == TransitCardProfile.OCTOPUS) {
+                if (
+                    selected == TransitCardProfile.AUTOMATIC ||
+                    selected == TransitCardProfile.OCTOPUS
+                ) {
                     OctopusBalanceBasisSelector(
                         selected = octopusBalanceBasis,
                         enabled = enabled,
@@ -731,6 +752,8 @@ private fun scanButtonText(state: TransitCardReaderUiState): String = when {
     state.isReading -> stringResource(R.string.button_reading)
     state.isWaitingForCard -> stringResource(R.string.button_waiting)
     state.selectedProfile == null -> stringResource(R.string.button_select_first)
+    state.selectedProfile == TransitCardProfile.AUTOMATIC ->
+        stringResource(R.string.button_scan_automatic)
     else -> stringResource(
         R.string.button_scan_card,
         localizedProfileName(state.selectedProfile),
@@ -740,16 +763,37 @@ private fun scanButtonText(state: TransitCardReaderUiState): String = when {
 @Composable
 private fun localizedStatus(state: TransitCardReaderUiState): String {
     val profileName = state.selectedProfile?.let { localizedProfileName(it) }.orEmpty()
+    val isAutomatic = state.selectedProfile == TransitCardProfile.AUTOMATIC
     return when (state.status) {
         ReaderStatus.SELECT_CARD -> stringResource(R.string.status_select_card)
-        ReaderStatus.CARD_SELECTED -> stringResource(R.string.status_card_selected, profileName)
+        ReaderStatus.CARD_SELECTED -> if (isAutomatic) {
+            stringResource(R.string.status_auto_ready)
+        } else {
+            stringResource(R.string.status_card_selected, profileName)
+        }
         ReaderStatus.NFC_UNSUPPORTED -> stringResource(R.string.status_nfc_unsupported)
         ReaderStatus.NFC_DISABLED -> stringResource(R.string.status_nfc_disabled)
-        ReaderStatus.NFC_READY -> stringResource(R.string.status_nfc_ready)
+        ReaderStatus.NFC_READY -> if (isAutomatic) {
+            stringResource(R.string.status_auto_ready)
+        } else {
+            stringResource(R.string.status_nfc_ready)
+        }
         ReaderStatus.SELECT_REQUIRED -> stringResource(R.string.status_select_required)
-        ReaderStatus.HOLD_CARD -> stringResource(R.string.status_hold_card, profileName)
-        ReaderStatus.READING -> stringResource(R.string.status_reading, profileName)
-        ReaderStatus.READ_SUCCESS -> stringResource(R.string.status_read_success, profileName)
+        ReaderStatus.HOLD_CARD -> if (isAutomatic) {
+            stringResource(R.string.status_hold_any_card)
+        } else {
+            stringResource(R.string.status_hold_card, profileName)
+        }
+        ReaderStatus.READING -> if (isAutomatic) {
+            stringResource(R.string.status_auto_reading)
+        } else {
+            stringResource(R.string.status_reading, profileName)
+        }
+        ReaderStatus.READ_SUCCESS -> if (isAutomatic) {
+            stringResource(R.string.status_auto_read_success, state.lastScans.size)
+        } else {
+            stringResource(R.string.status_read_success, profileName)
+        }
         ReaderStatus.READ_FAILED -> stringResource(R.string.status_read_failed)
     }
 }
@@ -763,13 +807,16 @@ private fun localizedProfileSelection(profile: TransitCardProfile): String = str
 
 @Composable
 private fun localizedProfileName(profile: TransitCardProfile): String =
-    profile.localName?.let { localName ->
+    if (profile == TransitCardProfile.AUTOMATIC) {
+        stringResource(R.string.automatic_detection)
+    } else profile.localName?.let { localName ->
         stringResource(R.string.card_name_format, profile.displayName, localName)
     } ?: profile.displayName
 
 @Composable
 private fun localizedRegion(profile: TransitCardProfile): String = stringResource(
     when (profile) {
+        TransitCardProfile.AUTOMATIC -> R.string.region_supported_cards
         TransitCardProfile.OCTOPUS -> R.string.region_hong_kong
         TransitCardProfile.EASYCARD,
         TransitCardProfile.IPASS,
@@ -777,10 +824,7 @@ private fun localizedRegion(profile: TransitCardProfile): String = stringResourc
 
         TransitCardProfile.EZLINK -> R.string.region_singapore
         TransitCardProfile.T_MONEY -> R.string.region_south_korea
-        TransitCardProfile.SUICA,
-        TransitCardProfile.PASMO,
-        TransitCardProfile.ICOCA,
-        -> R.string.region_japan
+        TransitCardProfile.JAPAN_TRANSIT_IC -> R.string.region_japan
 
         TransitCardProfile.YANGCHENGTONG -> R.string.region_guangzhou
         TransitCardProfile.SHENZHENTONG -> R.string.region_shenzhen
@@ -795,6 +839,7 @@ private fun localizedRegion(profile: TransitCardProfile): String = stringResourc
 @Composable
 private fun localizedCapability(support: BalanceReadSupport): String = stringResource(
     when (support) {
+        BalanceReadSupport.AUTOMATIC -> R.string.capability_automatic
         BalanceReadSupport.ESTIMATED -> R.string.capability_estimated
         BalanceReadSupport.ISSUER_KEYS -> R.string.capability_issuer_keys
         BalanceReadSupport.PROTECTED_FORMAT -> R.string.capability_protected_format
@@ -820,6 +865,7 @@ private fun localizedBalanceExplanation(scan: TransitCardScan): String {
 
     return stringResource(
         when (scan.selectedProfile.balanceReadSupport) {
+            BalanceReadSupport.AUTOMATIC -> R.string.balance_reason_automatic_unknown
             BalanceReadSupport.ESTIMATED -> R.string.balance_reason_not_exposed
             BalanceReadSupport.ISSUER_KEYS -> R.string.balance_reason_issuer_keys
             BalanceReadSupport.PROTECTED_FORMAT -> R.string.balance_reason_protected_format

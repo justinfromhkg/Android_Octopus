@@ -10,12 +10,13 @@ Source repository: [justinfromhkg/Android_Octopus](https://github.com/justinfrom
 
 | Card profile | What this version can read | Important limitation |
 | --- | --- | --- |
+| Automatic detection | Probes every compatible public read-only application and displays each detected result separately | Protected MIFARE cards cannot always identify their issuer without secret keys; use a manual profile when needed |
 | Octopus (Hong Kong) | NFC identifier, FeliCa details, and community-decoded balance estimate with a selectable HK$35/HK$50 card-generation basis; explicitly selects system `8008` on Octopus + Shenzhen/T-Union multi-system cards | The card does not publicly identify the correct balance offset; select the matching issuance type and verify important amounts with an official reader |
 | EasyCard (Taiwan) | NFC identifier and technology metadata | Balance sectors require issuer MIFARE Classic keys |
 | iPASS (Taiwan) | NFC identifier and technology metadata | Stored-value data varies by generation and is not decoded here |
 | EZ-Link / CEPAS (Singapore) | Card number and balance on compatible legacy CEPAS cards | SimplyGo/account-based cards may not keep a readable local balance |
 | T-money / 티머니 (South Korea) | Public purse balance, card details, and up to 10 recent public transaction records on compatible KS X 6924 cards | Human-readable route/station names are not reliably available in the public record; some generations may not expose the same application |
-| Suica / PASMO / ICOCA (Japan) | NFC identifier and latest stored balance | These interoperable cards share system code `0003`; the exact brand is not always distinguishable |
+| Japan Transit IC / 交通系ICカード | NFC identifier and latest stored balance on compatible Suica, PASMO, ICOCA, Kitaca, TOICA, manaca, SUGOCA, nimoca, Hayakaken, and related interoperable cards | These cards share FeliCa system `0003`; the exact brand is not always distinguishable, and post-pay products such as PiTaPa may not expose a stored balance |
 | Yangchengtong (Guangdong) | Balance on compatible CPU/City Union/T-Union cards; identifier fallback | Older MIFARE variants may require keys |
 | Shenzhentong (Guangdong) | Balance on compatible CPU/T-Union cards; identifier fallback | Older MIFARE variants may require keys |
 | China T-Union | Positive or debt-adjusted balance, card number, validity, and up to 10 public transaction records | Route/station records contain issuer-specific numeric codes rather than a reliable nationwide name list |
@@ -32,10 +33,12 @@ card does not expose one publicly.
 
 1. Use a real NFC-capable Android phone and turn NFC on.
 2. Open **Multi Transit Card Reader**.
-3. In the required **Select your card** section, choose the exact card profile.
-   This tells the app which read-only protocol to use when a card or phone
-   supports several NFC technologies.
-4. For Octopus, choose the matching card generation: **HK$35** for an On-Loan
+3. Leave **Automatic detection** selected. The app probes all compatible
+   public read-only applications and shows a separate result for each detected
+   core. Choose a manual profile only for a protected or ambiguous card that
+   cannot identify itself publicly.
+4. If an Octopus card may be detected, choose its matching balance basis:
+   **HK$35** for an On-Loan
    physical Octopus issued before 1 October 2017, or **HK$50** for a newer
    physical or mobile Octopus. The older physical-card choice is the default.
 5. Tap **Scan**.
@@ -47,18 +50,35 @@ cards only; it does not read cards stored inside Apple Wallet or Google Wallet.
 
 Each selection shows both the international product name and its native name
 where one exists, for example `EasyCard · 悠遊卡`, `Octopus · 八達通`, and
-`Suica · スイカ`.
+`Japan Transit IC · 交通系ICカード`.
 
 ## Application languages
 
-The interface includes English, Traditional Chinese, Simplified Chinese,
-Japanese, Korean, and Malay. Android 13 and newer can change the language for
-this app independently under **Settings > Apps > Multi Transit Card Reader >
-Language**. Older Android versions follow the phone language.
+English remains the default/source interface. The app also includes
+Traditional Chinese, Simplified Chinese, Japanese, Korean, and Malay. Android
+13 and newer can change the language for this app independently from the
+in-app **App language** button or under **Settings > Apps > Multi Transit Card
+Reader > Language**. On older Android versions, the same button opens the
+device language settings and the app follows the phone language.
 
 All user-interface labels, scan instructions, status messages, balance labels,
 regions, and balance-availability explanations are localized. Technical NFC
 protocol names and raw card data remain in their standard form.
+
+## Automatic and multi-core detection
+
+Version 0.6.0 makes automatic detection the default. One tap independently
+probes known FeliCa systems and public ISO-DEP applications. A multi-core card
+can therefore return multiple `TransitCardScan` results; for example, an
+Octopus + Shenzhentong/T-Union card can display the Octopus `8008` purse and
+the mainland China CPU application as two separate result cards.
+
+Automatic detection currently performs strong public checks for Octopus,
+Japan Transit IC, T-money, CEPAS/EZ-Link, Shenzhentong/T-Union/City Union, and
+classic Clipper. EasyCard, Touch 'n Go, first-generation Oyster, and some other
+MIFARE cards cannot be uniquely identified from public metadata because their
+issuer data is key-protected. Those cards receive a safe unidentified result
+and can still be opened with the manual profile selected by the user.
 
 ## Octopus physical-card balance and multi-system cards
 
@@ -214,6 +234,9 @@ not break.
 - [Android `IsoDep` API](https://developer.android.com/reference/android/nfc/tech/IsoDep)
 - [Android `NfcF` API](https://developer.android.com/reference/android/nfc/tech/NfcF)
 - [Android `MifareClassic` API](https://developer.android.com/reference/android/nfc/tech/MifareClassic)
+- [JR East nationwide interoperable IC-card list](https://www.jreast.co.jp/suica/ic/use/equip/)
+- [PiTaPa post-pay and stored-value behavior](https://www.pitapa.com/faq?id=faq08)
+- [Sony FeliCa Polling and system-code behavior](https://www.sony.net/Products/felica/business/tech-support/data/M633_NFC_Dynamic_Tag_Users_manual_1.14e.pdf)
 - [Official Octopus convenience-limit guidance](https://www.octopus.com.hk/en/consumer/customer-service/faq/get-your-octopus/about-octopus.html)
 - [Metrodroid Octopus offset history](https://github.com/metrodroid/metrodroid/blob/04a603ba639f7a270b7bdbf24158c7d601087c29/src/commonMain/kotlin/au/id/micolous/metrodroid/transit/octopus/OctopusData.kt)
 - [Metrodroid Suica-family constants](https://github.com/metrodroid/metrodroid/blob/04a603ba639f7a270b7bdbf24158c7d601087c29/src/commonMain/kotlin/au/id/micolous/metrodroid/transit/suica/SuicaConsts.kt)
