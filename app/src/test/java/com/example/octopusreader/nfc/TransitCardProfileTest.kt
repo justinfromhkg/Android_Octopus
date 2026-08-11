@@ -11,7 +11,7 @@ class TransitCardProfileTest {
                 "Octopus",
                 "EasyCard",
                 "iPASS",
-                "EZ-Link / CEPAS",
+                "EZ-Link",
                 "Suica",
                 "PASMO",
                 "ICOCA",
@@ -24,5 +24,15 @@ class TransitCardProfileTest {
             ),
             TransitCardProfile.entries.map(TransitCardProfile::displayName),
         )
+    }
+
+    @Test
+    fun `native card names are included where the brand has one`() {
+        assertEquals("八達通", TransitCardProfile.OCTOPUS.localName)
+        assertEquals("悠遊卡", TransitCardProfile.EASYCARD.localName)
+        assertEquals("一卡通", TransitCardProfile.IPASS.localName)
+        assertEquals("スイカ", TransitCardProfile.SUICA.localName)
+        assertEquals("羊城通", TransitCardProfile.YANGCHENGTONG.localName)
+        assertEquals("澳門通", TransitCardProfile.MACAU_PASS.localName)
     }
 }

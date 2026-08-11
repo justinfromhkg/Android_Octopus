@@ -44,4 +44,4 @@ jobs:
           gh release create "${GITHUB_REF_NAME}"
           "Multi_Transit_Card_Reader-${GITHUB_REF_NAME}.apk"
           --title "Multi Transit Card Reader ${GITHUB_REF_NAME}"
-          --notes "Experimental, debug-signed APK for direct testing on NFC-capable Android phones. Select the exact card in the app before scanning so it uses the correct read-only NFC protocol. Profiles include Octopus, EasyCard, iPASS, EZ-Link/CEPAS, Suica, PASMO, ICOCA, Yangchengtong, Shenzhentong, China T-Union, Clipper, Macau Pass, and Touch 'n Go. Balance availability depends on the card generation and whether its data is public; see the README for the support matrix and limitations."
+          --notes "Experimental, debug-signed APK for direct testing on NFC-capable Android phones. Adds English, Traditional Chinese, Simplified Chinese, Japanese, Korean, and Malay interfaces; native card names in the selector; corrected signed 31-bit China transit balances; and separate T-Union positive/debt purse handling. Select the exact card before scanning. Protected or account-based cards may not expose a local balance; see the README for the support matrix and limitations."

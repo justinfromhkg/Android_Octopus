@@ -45,6 +45,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.octopusreader.R
+import com.example.octopusreader.nfc.BalanceReadSupport
 import com.example.octopusreader.nfc.TransitBalance
 import com.example.octopusreader.nfc.TransitCardProfile
 import com.example.octopusreader.nfc.TransitCardScan
@@ -110,13 +111,7 @@ fun TransitCardReaderScreen(
                 shape = RoundedCornerShape(16.dp),
             ) {
                 Text(
-                    text = when {
-                        state.isReading -> "Reading…"
-                        state.isWaitingForCard -> "Waiting for card…"
-                        state.selectedProfile == null -> "Select a card first"
-                        else -> state.selectedProfile?.let { "Scan ${it.displayName}" }
-                            ?: "Select a card first"
-                    },
+                    text = scanButtonText(state),
                     fontWeight = FontWeight.SemiBold,
                 )
             }
@@ -126,12 +121,12 @@ fun TransitCardReaderScreen(
                     onClick = onOpenNfcSettings,
                     modifier = Modifier.fillMaxWidth(),
                 ) {
-                    Text("Open NFC settings")
+                    Text(stringResource(R.string.open_nfc_settings))
                 }
             }
 
             Text(
-                text = "Read-only: no top-up, payment, authentication-key guessing, or card writes. Results stay on this screen and are not uploaded.",
+                text = stringResource(R.string.privacy_notice),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontSize = 12.sp,
                 lineHeight = 17.sp,
@@ -174,14 +169,14 @@ private fun HeroCard() {
 
             Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
                 Text(
-                    text = "One phone. Many transit cards.",
+                    text = stringResource(R.string.hero_title),
                     color = MaterialTheme.colorScheme.onPrimaryContainer,
                     fontWeight = FontWeight.Bold,
                     fontSize = 23.sp,
                     lineHeight = 28.sp,
                 )
                 Text(
-                    text = "Read supported physical cards without sending their data anywhere.",
+                    text = stringResource(R.string.hero_subtitle),
                     color = MaterialTheme.colorScheme.onPrimaryContainer,
                     lineHeight = 20.sp,
                 )
@@ -208,9 +203,13 @@ private fun ProfileSelector(
             modifier = Modifier.padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            Text("Select your card", fontWeight = FontWeight.Bold, fontSize = 18.sp)
             Text(
-                text = "Required: choose the exact card before scanning so the app uses the correct read-only NFC protocol.",
+                stringResource(R.string.select_card_title),
+                fontWeight = FontWeight.Bold,
+                fontSize = 18.sp,
+            )
+            Text(
+                text = stringResource(R.string.select_card_description),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontSize = 13.sp,
                 lineHeight = 18.sp,
@@ -222,8 +221,8 @@ private fun ProfileSelector(
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     Text(
-                        selected?.let { "${it.displayName} — ${it.region}" }
-                            ?: "Choose a transit card",
+                        selected?.let { localizedProfileSelection(it) }
+                            ?: stringResource(R.string.choose_card),
                     )
                 }
                 DropdownMenu(
@@ -234,9 +233,12 @@ private fun ProfileSelector(
                         DropdownMenuItem(
                             text = {
                                 Column {
-                                    Text(profile.displayName, fontWeight = FontWeight.SemiBold)
                                     Text(
-                                        profile.region,
+                                        localizedProfileName(profile),
+                                        fontWeight = FontWeight.SemiBold,
+                                    )
+                                    Text(
+                                        localizedRegion(profile),
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                                         fontSize = 12.sp,
                                     )
@@ -252,7 +254,7 @@ private fun ProfileSelector(
             }
             if (selected == null) {
                 Text(
-                    text = "No card selected",
+                    text = stringResource(R.string.no_card_selected),
                     color = MaterialTheme.colorScheme.error,
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 13.sp,
@@ -265,7 +267,7 @@ private fun ProfileSelector(
                     fontSize = 13.sp,
                 )
                 Text(
-                    text = selected.capability,
+                    text = localizedCapability(selected.balanceReadSupport),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 13.sp,
                     lineHeight = 18.sp,
@@ -287,10 +289,14 @@ private fun InstructionCard() {
             modifier = Modifier.padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text("How to scan", fontWeight = FontWeight.Bold, fontSize = 18.sp)
-            Step(1, "Choose the matching card system.")
-            Step(2, "Tap the Scan button.")
-            Step(3, "Hold the physical card still against the phone's NFC antenna.")
+            Text(
+                stringResource(R.string.how_to_scan),
+                fontWeight = FontWeight.Bold,
+                fontSize = 18.sp,
+            )
+            Step(1, stringResource(R.string.scan_step_1))
+            Step(2, stringResource(R.string.scan_step_2))
+            Step(3, stringResource(R.string.scan_step_3))
         }
     }
 }
@@ -317,7 +323,8 @@ private fun Step(number: Int, text: String) {
 
 @Composable
 private fun StatusCard(state: TransitCardReaderUiState) {
-    val isProblem = !state.nfcSupported || !state.nfcEnabled
+    val isProblem = !state.nfcSupported || !state.nfcEnabled ||
+        state.status == ReaderStatus.READ_FAILED
     Surface(
         color = if (isProblem) {
             MaterialTheme.colorScheme.errorContainer
@@ -341,7 +348,7 @@ private fun StatusCard(state: TransitCardReaderUiState) {
                     ),
             )
             Text(
-                text = state.status,
+                text = localizedStatus(state),
                 color = if (isProblem) {
                     MaterialTheme.colorScheme.onErrorContainer
                 } else {
@@ -370,14 +377,18 @@ private fun ResultCard(scan: TransitCardScan) {
             verticalArrangement = Arrangement.spacedBy(13.dp),
         ) {
             Text(
-                text = scan.detectedName,
+                text = localizedProfileName(scan.selectedProfile),
                 fontWeight = FontWeight.Bold,
                 fontSize = 20.sp,
             )
 
             if (scan.balance != null) {
                 Text(
-                    text = if (scan.balance.isEstimated) "Estimated balance" else "Balance",
+                    text = if (scan.balance.isEstimated) {
+                        stringResource(R.string.estimated_balance)
+                    } else {
+                        stringResource(R.string.balance)
+                    },
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontWeight = FontWeight.Medium,
                 )
@@ -390,37 +401,44 @@ private fun ResultCard(scan: TransitCardScan) {
                 )
             } else {
                 Text(
-                    text = "Card detected",
+                    text = stringResource(R.string.card_detected),
                     color = MaterialTheme.colorScheme.primary,
                     fontSize = 28.sp,
                     fontWeight = FontWeight.Bold,
                 )
                 Text(
-                    text = "Balance unavailable",
+                    text = stringResource(R.string.balance_not_readable),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontWeight = FontWeight.Medium,
                 )
             }
 
             Text(
-                text = scan.note,
+                text = localizedBalanceExplanation(scan),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontSize = 12.sp,
                 lineHeight = 17.sp,
             )
 
             HorizontalDivider()
-            ResultRow("Selected profile", scan.selectedProfile.displayName)
-            ResultRow("NFC identifier", scan.cardId, monospace = true)
-            scan.cardNumber?.let { ResultRow("Card number", it, monospace = true) }
-            scan.systemCode?.let { ResultRow("System code", it, monospace = true) }
-            ResultRow("Technologies", scan.technology)
-            ResultRow("Read protocol", scan.protocol)
-            ResultRow("Scanned", timeFormatter.format(scan.scannedAt))
+            ResultRow(
+                stringResource(R.string.selected_profile),
+                localizedProfileName(scan.selectedProfile),
+            )
+            ResultRow(stringResource(R.string.nfc_identifier), scan.cardId, monospace = true)
+            scan.cardNumber?.let {
+                ResultRow(stringResource(R.string.card_number), it, monospace = true)
+            }
+            scan.systemCode?.let {
+                ResultRow(stringResource(R.string.system_code), it, monospace = true)
+            }
+            ResultRow(stringResource(R.string.technologies), scan.technology)
+            ResultRow(stringResource(R.string.read_protocol), scan.protocol)
+            ResultRow(stringResource(R.string.scanned), timeFormatter.format(scan.scannedAt))
 
             scan.rawDataHex?.let { rawData ->
                 Text(
-                    text = "Raw read-only data",
+                    text = stringResource(R.string.raw_read_only_data),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.SemiBold,
@@ -439,13 +457,115 @@ private fun ResultCard(scan: TransitCardScan) {
 }
 
 private fun formatBalance(balance: TransitBalance): String {
-    val formatter = NumberFormat.getCurrencyInstance(Locale.US).apply {
+    val formatter = NumberFormat.getCurrencyInstance(Locale.getDefault()).apply {
         currency = Currency.getInstance(balance.currencyCode)
         minimumFractionDigits = balance.fractionDigits
         maximumFractionDigits = balance.fractionDigits
     }
     val amount = BigDecimal.valueOf(balance.amountMinor).movePointLeft(balance.fractionDigits)
     return formatter.format(amount)
+}
+
+@Composable
+private fun scanButtonText(state: TransitCardReaderUiState): String = when {
+    state.isReading -> stringResource(R.string.button_reading)
+    state.isWaitingForCard -> stringResource(R.string.button_waiting)
+    state.selectedProfile == null -> stringResource(R.string.button_select_first)
+    else -> stringResource(
+        R.string.button_scan_card,
+        localizedProfileName(state.selectedProfile),
+    )
+}
+
+@Composable
+private fun localizedStatus(state: TransitCardReaderUiState): String {
+    val profileName = state.selectedProfile?.let { localizedProfileName(it) }.orEmpty()
+    return when (state.status) {
+        ReaderStatus.SELECT_CARD -> stringResource(R.string.status_select_card)
+        ReaderStatus.CARD_SELECTED -> stringResource(R.string.status_card_selected, profileName)
+        ReaderStatus.NFC_UNSUPPORTED -> stringResource(R.string.status_nfc_unsupported)
+        ReaderStatus.NFC_DISABLED -> stringResource(R.string.status_nfc_disabled)
+        ReaderStatus.NFC_READY -> stringResource(R.string.status_nfc_ready)
+        ReaderStatus.SELECT_REQUIRED -> stringResource(R.string.status_select_required)
+        ReaderStatus.HOLD_CARD -> stringResource(R.string.status_hold_card, profileName)
+        ReaderStatus.READING -> stringResource(R.string.status_reading, profileName)
+        ReaderStatus.READ_SUCCESS -> stringResource(R.string.status_read_success, profileName)
+        ReaderStatus.READ_FAILED -> stringResource(R.string.status_read_failed)
+    }
+}
+
+@Composable
+private fun localizedProfileSelection(profile: TransitCardProfile): String = stringResource(
+    R.string.card_selection_format,
+    localizedProfileName(profile),
+    localizedRegion(profile),
+)
+
+@Composable
+private fun localizedProfileName(profile: TransitCardProfile): String =
+    profile.localName?.let { localName ->
+        stringResource(R.string.card_name_format, profile.displayName, localName)
+    } ?: profile.displayName
+
+@Composable
+private fun localizedRegion(profile: TransitCardProfile): String = stringResource(
+    when (profile) {
+        TransitCardProfile.OCTOPUS -> R.string.region_hong_kong
+        TransitCardProfile.EASYCARD,
+        TransitCardProfile.IPASS,
+        -> R.string.region_taiwan
+
+        TransitCardProfile.EZLINK -> R.string.region_singapore
+        TransitCardProfile.SUICA,
+        TransitCardProfile.PASMO,
+        TransitCardProfile.ICOCA,
+        -> R.string.region_japan
+
+        TransitCardProfile.YANGCHENGTONG -> R.string.region_guangzhou
+        TransitCardProfile.SHENZHENTONG -> R.string.region_shenzhen
+        TransitCardProfile.T_UNION -> R.string.region_china
+        TransitCardProfile.CLIPPER -> R.string.region_san_francisco
+        TransitCardProfile.MACAU_PASS -> R.string.region_macau
+        TransitCardProfile.TOUCH_N_GO -> R.string.region_malaysia
+    },
+)
+
+@Composable
+private fun localizedCapability(support: BalanceReadSupport): String = stringResource(
+    when (support) {
+        BalanceReadSupport.ESTIMATED -> R.string.capability_estimated
+        BalanceReadSupport.ISSUER_KEYS -> R.string.capability_issuer_keys
+        BalanceReadSupport.PROTECTED_FORMAT -> R.string.capability_protected_format
+        BalanceReadSupport.LEGACY_CEPAS -> R.string.capability_legacy_cepas
+        BalanceReadSupport.PUBLIC_FELICA -> R.string.capability_public_felica
+        BalanceReadSupport.CHINA_CARD_VARIANT -> R.string.capability_china_variant
+        BalanceReadSupport.CHINA_PUBLIC_PURSE -> R.string.capability_china_public
+        BalanceReadSupport.CLASSIC_CLIPPER -> R.string.capability_classic_clipper
+    },
+)
+
+@Composable
+private fun localizedBalanceExplanation(scan: TransitCardScan): String {
+    if (scan.balance != null) {
+        return if (scan.balance.isEstimated) {
+            stringResource(R.string.balance_note_estimated)
+        } else {
+            stringResource(R.string.balance_note_public_read)
+        }
+    }
+
+    return stringResource(
+        when (scan.selectedProfile.balanceReadSupport) {
+            BalanceReadSupport.ESTIMATED -> R.string.balance_reason_not_exposed
+            BalanceReadSupport.ISSUER_KEYS -> R.string.balance_reason_issuer_keys
+            BalanceReadSupport.PROTECTED_FORMAT -> R.string.balance_reason_protected_format
+            BalanceReadSupport.LEGACY_CEPAS -> R.string.balance_reason_legacy_cepas
+            BalanceReadSupport.PUBLIC_FELICA -> R.string.balance_reason_not_exposed
+            BalanceReadSupport.CHINA_CARD_VARIANT -> R.string.balance_reason_china_variant
+            BalanceReadSupport.CHINA_PUBLIC_PURSE -> R.string.balance_reason_not_exposed
+            BalanceReadSupport.CLASSIC_CLIPPER -> R.string.balance_reason_clipper
+        },
+    )
 }
 
 @Composable

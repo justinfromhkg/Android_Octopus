@@ -45,6 +45,34 @@ class Iso7816TransitProtocolTest {
         )
     }
 
+    @Test
+    fun `China balance ignores the upper flag and decodes signed 31 bit cents`() {
+        assertEquals(
+            -1_234L,
+            Iso7816TransitProtocol.parseChinaBalanceCents(
+                byteArrayOf(0xFF.toByte(), 0xFF.toByte(), 0xFB.toByte(), 0x2E),
+            ),
+        )
+    }
+
+    @Test
+    fun `T Union debt purse is used when positive purse is zero`() {
+        assertEquals(
+            -1_234L,
+            Iso7816TransitProtocol.parseChinaTUnionBalanceCents(
+                positivePurse = byteArrayOf(0x00, 0x00, 0x00, 0x00),
+                debtPurse = byteArrayOf(0x00, 0x00, 0x04, 0xD2.toByte()),
+            ),
+        )
+        assertEquals(
+            12_345L,
+            Iso7816TransitProtocol.parseChinaTUnionBalanceCents(
+                positivePurse = byteArrayOf(0x00, 0x00, 0x30, 0x39),
+                debtPurse = byteArrayOf(0x00, 0x00, 0x04, 0xD2.toByte()),
+            ),
+        )
+    }
+
     @Test(expected = Iso7816ProtocolException::class)
     fun `non-success status is rejected`() {
         Iso7816TransitProtocol.unwrap(byteArrayOf(0x6A, 0x82.toByte()))

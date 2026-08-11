@@ -78,7 +78,15 @@ object TransitCardReader {
                 note = "Community-decoded estimate. Verify important amounts with an official Octopus reader.",
             )
         } catch (error: OctopusProtocolException) {
-            CardReadResult.Failure(error.message ?: "The Octopus response could not be decoded.")
+            success(
+                tag = tag,
+                profile = TransitCardProfile.OCTOPUS,
+                detectedName = "Octopus",
+                protocol = "FeliCa Read Without Encryption",
+                balance = null,
+                systemCode = systemCode.toUpperHex(),
+                note = error.message ?: "The Octopus balance record was not exposed.",
+            )
         } finally {
             nfcF.closeQuietly()
         }
@@ -123,7 +131,15 @@ object TransitCardReader {
                 note = "Read using the selected ${profile.displayName} profile. These interoperable cards share a common NFC system, so the card itself may not confirm the exact brand.",
             )
         } catch (error: FelicaProtocolException) {
-            CardReadResult.Failure(error.message ?: "The Japanese IC response could not be decoded.")
+            success(
+                tag = tag,
+                profile = profile,
+                detectedName = profile.displayName,
+                protocol = "FeliCa service 090F",
+                balance = null,
+                systemCode = systemCode.toUpperHex(),
+                note = error.message ?: "The Japanese IC balance record was not exposed.",
+            )
         } finally {
             nfcF.closeQuietly()
         }
@@ -163,7 +179,11 @@ object TransitCardReader {
                 note = "Compatible with legacy CEPAS stored-value cards. Account-based SimplyGo cards may not expose a local balance.",
             )
         } catch (error: Iso7816ProtocolException) {
-            CardReadResult.Failure(error.message ?: "The CEPAS purse could not be read.")
+            readIdentificationOnly(
+                tag = tag,
+                profile = TransitCardProfile.EZLINK,
+                extraNote = error.message ?: "No compatible legacy CEPAS purse was exposed.",
+            )
         } finally {
             isoDep.closeQuietly()
         }
@@ -219,6 +239,20 @@ object TransitCardReader {
                 } catch (_: Iso7816ProtocolException) {
                     null
                 }
+                val isTUnion = selected.second.contentEquals(tUnionAid)
+                val debtData = if (isTUnion && balanceData != null) {
+                    try {
+                        Iso7816TransitProtocol.unwrap(
+                            isoDep.transceive(
+                                Iso7816TransitProtocol.getChinaBalance(balanceIndex = 1),
+                            ),
+                        )
+                    } catch (_: Iso7816ProtocolException) {
+                        null
+                    }
+                } else {
+                    null
+                }
                 success(
                     tag = tag,
                     profile = profile,
@@ -227,7 +261,11 @@ object TransitCardReader {
                     balance = balanceData?.let {
                         TransitBalance(
                             currencyCode = "CNY",
-                            amountMinor = Iso7816TransitProtocol.parseChinaBalanceCents(it),
+                            amountMinor = if (isTUnion) {
+                                Iso7816TransitProtocol.parseChinaTUnionBalanceCents(it, debtData)
+                            } else {
+                                Iso7816TransitProtocol.parseChinaBalanceCents(it)
+                            },
                             fractionDigits = 2,
                         )
                     },

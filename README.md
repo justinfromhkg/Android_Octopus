@@ -17,7 +17,7 @@ Source repository: [justinfromhkg/Android_Octopus](https://github.com/justinfrom
 | Suica / PASMO / ICOCA (Japan) | NFC identifier and latest stored balance | These interoperable cards share system code `0003`; the exact brand is not always distinguishable |
 | Yangchengtong (Guangdong) | Balance on compatible CPU/City Union/T-Union cards; identifier fallback | Older MIFARE variants may require keys |
 | Shenzhentong (Guangdong) | Balance on compatible CPU/T-Union cards; identifier fallback | Older MIFARE variants may require keys |
-| China T-Union | Balance on compatible PBOC/T-Union cards | Issuer and card-generation behavior can vary |
+| China T-Union | Positive or debt-adjusted balance from compatible public PBOC/T-Union purses | Issuer and card-generation behavior can vary |
 | Clipper (San Francisco Bay Area) | Balance from the public application on compatible classic DESFire cards | Newer account-based products may use a different layout |
 | Macau Pass | NFC identifier and technology metadata | Protected stored-value data is not decoded |
 | Touch 'n Go (Malaysia) | NFC identifier and technology metadata | Balance sectors require issuer MIFARE Classic keys |
@@ -39,6 +39,40 @@ card does not expose one publicly.
 
 Android emulators cannot scan a physical transit card. This app reads physical
 cards only; it does not read cards stored inside Apple Wallet or Google Wallet.
+
+Each selection shows both the international product name and its native name
+where one exists, for example `EasyCard · 悠遊卡`, `Octopus · 八達通`, and
+`Suica · スイカ`.
+
+## Application languages
+
+The interface includes English, Traditional Chinese, Simplified Chinese,
+Japanese, Korean, and Malay. Android 13 and newer can change the language for
+this app independently under **Settings > Apps > Multi Transit Card Reader >
+Language**. Older Android versions follow the phone language.
+
+All user-interface labels, scan instructions, status messages, balance labels,
+regions, and balance-availability explanations are localized. Technical NFC
+protocol names and raw card data remain in their standard form.
+
+## Balance availability
+
+Version 0.3.0 corrects Chinese transit balances to use the card format's signed
+31-bit value. For compatible T-Union cards, it also reads both public purse 0
+and public debt purse 1 and combines them according to the documented parser.
+
+Some cards still cannot expose a balance to a general Android NFC app:
+
+- EasyCard and Touch 'n Go store balance data in MIFARE Classic sectors that
+  require issuer keys.
+- iPASS and Macau Pass stored-value formats are protected or not publicly
+  decoded in this project.
+- SimplyGo, newer Clipper cards, and some card generations are account-based or
+  use formats different from their legacy public purse.
+
+For those cards, the app displays the NFC identifier plus a localized,
+card-specific explanation. It does not guess keys or show a fabricated zero
+balance.
 
 ## Privacy and safety
 
@@ -111,6 +145,9 @@ not break.
 - [Metrodroid Suica-family constants](https://github.com/metrodroid/metrodroid/blob/04a603ba639f7a270b7bdbf24158c7d601087c29/src/commonMain/kotlin/au/id/micolous/metrodroid/transit/suica/SuicaConsts.kt)
 - [Metrodroid CEPAS protocol](https://github.com/metrodroid/metrodroid/blob/04a603ba639f7a270b7bdbf24158c7d601087c29/src/commonMain/kotlin/au/id/micolous/metrodroid/card/cepas/CEPASProtocol.kt)
 - [Metrodroid China transit-card protocol](https://github.com/metrodroid/metrodroid/blob/04a603ba639f7a270b7bdbf24158c7d601087c29/src/commonMain/kotlin/au/id/micolous/metrodroid/card/china/ChinaCard.kt)
+- [Metrodroid T-Union balance parser](https://github.com/metrodroid/metrodroid/blob/04a603ba639f7a270b7bdbf24158c7d601087c29/src/commonMain/kotlin/au/id/micolous/metrodroid/transit/china/TUnionTransitData.kt)
+- [Metrodroid EasyCard parser](https://github.com/metrodroid/metrodroid/blob/04a603ba639f7a270b7bdbf24158c7d601087c29/src/commonMain/kotlin/au/id/micolous/metrodroid/transit/easycard/EasyCardTransitData.kt)
+- [Metrodroid Touch 'n Go parser](https://github.com/metrodroid/metrodroid/blob/04a603ba639f7a270b7bdbf24158c7d601087c29/src/commonMain/kotlin/au/id/micolous/metrodroid/transit/touchngo/TouchnGoTransitData.kt)
 - [Metrodroid Clipper parser](https://github.com/metrodroid/metrodroid/blob/04a603ba639f7a270b7bdbf24158c7d601087c29/src/commonMain/kotlin/au/id/micolous/metrodroid/transit/clipper/ClipperTransitData.kt)
 
 ## Apple version

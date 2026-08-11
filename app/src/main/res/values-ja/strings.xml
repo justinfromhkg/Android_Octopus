@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">マルチ交通系ICカードリーダー</string>
+    <string name="hero_title">1台のスマートフォンで、さまざまな交通系ICカードを。</string>
+    <string name="hero_subtitle">対応する実物カードを、データを送信せずに読み取ります。</string>
+    <string name="select_card_title">カードを選択</string>
+    <string name="select_card_description">必須：スキャン前に正しいカードを選択してください。選択したカードに合う読み取り専用NFCプロトコルを使用します。</string>
+    <string name="choose_card">交通系ICカードを選択</string>
+    <string name="no_card_selected">カードが選択されていません</string>
+    <string name="card_name_format">%1$s · %2$s</string>
+    <string name="card_selection_format">%1$s — %2$s</string>
+    <string name="how_to_scan">スキャン方法</string>
+    <string name="scan_step_1">カードに合うシステムを選択します。</string>
+    <string name="scan_step_2">「スキャン」ボタンをタップします。</string>
+    <string name="scan_step_3">実物カードをスマートフォンのNFCアンテナに当て、動かさないでください。</string>
+    <string name="button_reading">読み取り中…</string>
+    <string name="button_waiting">カードを待機中…</string>
+    <string name="button_select_first">先にカードを選択</string>
+    <string name="button_scan_card">%1$sをスキャン</string>
+    <string name="open_nfc_settings">NFC設定を開く</string>
+    <string name="privacy_notice">読み取り専用：チャージ、支払い、認証キーの推測、カードへの書き込みは行いません。結果はこの画面だけに表示され、アップロードされません。</string>
+
+    <string name="status_select_card">使用するカードを選択し、「スキャン」をタップしてください。</string>
+    <string name="status_card_selected">%1$sを選択しました。準備ができたら「スキャン」をタップしてください。</string>
+    <string name="status_nfc_unsupported">このAndroidスマートフォンはNFCに対応していません。</string>
+    <string name="status_nfc_disabled">NFCがオフです。Androidの設定でオンにしてください。</string>
+    <string name="status_nfc_ready">NFCを使用できます。カードを選択して「スキャン」をタップしてください。</string>
+    <string name="status_select_required">スキャンする前に使用するカードを選択してください。</string>
+    <string name="status_hold_card">%1$sをスマートフォンの背面に平らに当て、動かさないでください。</string>
+    <string name="status_reading">%1$sを読み取り中…</string>
+    <string name="status_read_success">%1$sを正常に読み取りました。</string>
+    <string name="status_read_failed">カードを読み取れませんでした。選択したカードの種類を確認し、カードを動かさずにもう一度お試しください。</string>
+
+    <string name="estimated_balance">推定残高</string>
+    <string name="balance">残高</string>
+    <string name="card_detected">カードを検出しました</string>
+    <string name="balance_not_readable">残高を読み取れません</string>
+    <string name="balance_note_estimated">コミュニティ解析による推定値です。重要な金額は公式の読み取り機で確認してください。</string>
+    <string name="balance_note_public_read">公開された読み取り専用の残高記録から取得しました。書き込みコマンドは送信していません。</string>
+    <string name="balance_reason_issuer_keys">このカードの残高は、発行者キーで保護されたMIFAREセクターに保存されています。本アプリは秘密キーを推測または内蔵しないため、安全なNFCメタデータのみを表示します。</string>
+    <string name="balance_reason_protected_format">カードは検出されましたが、電子マネー形式が保護されているか公開されていません。安全なNFCメタデータのみを表示します。</string>
+    <string name="balance_reason_legacy_cepas">対応する旧式CEPASパースが見つかりません。SimplyGoや新しいアカウントベースのカードは、カード内に残高を保存していない場合があります。</string>
+    <string name="balance_reason_china_variant">対応する公開CPU、City Union、T-Unionパースが見つかりません。旧式MIFAREカードでは発行者キーが必要な場合があります。</string>
+    <string name="balance_reason_clipper">公開されている従来型Clipper DESFire残高ファイルが見つかりません。新しいアカウントベースのカードは別の形式を使用する場合があります。</string>
+    <string name="balance_reason_not_exposed">この世代のカードでは、想定される公開残高記録が提供されていません。</string>
+
+    <string name="capability_estimated">推定残高とカード識別子</string>
+    <string name="capability_issuer_keys">カード識別子のみ。残高セクターには発行者キーが必要です</string>
+    <string name="capability_protected_format">カード識別子のみ。保護された残高データの公開解析方法はありません</string>
+    <string name="capability_legacy_cepas">対応する旧式CEPASカードの残高とカード番号</string>
+    <string name="capability_public_felica">最新の保存残高とカード識別子</string>
+    <string name="capability_china_variant">対応するCPU、City Union、T-Unionカードの残高。非対応時は識別子のみ</string>
+    <string name="capability_china_public">対応するT-Unionカードの公開プラス残高および債務パース</string>
+    <string name="capability_classic_clipper">公開された従来型Clipperアプリを持つカードの残高</string>
+
+    <string name="selected_profile">選択したカード</string>
+    <string name="nfc_identifier">NFC識別子</string>
+    <string name="card_number">カード番号</string>
+    <string name="system_code">システムコード</string>
+    <string name="technologies">技術</string>
+    <string name="read_protocol">読み取りプロトコル</string>
+    <string name="scanned">スキャン日時</string>
+    <string name="raw_read_only_data">読み取り専用の生データ</string>
+
+    <string name="region_hong_kong">香港</string>
+    <string name="region_taiwan">台湾</string>
+    <string name="region_singapore">シンガポール</string>
+    <string name="region_japan">日本</string>
+    <string name="region_guangzhou">広東省広州市</string>
+    <string name="region_shenzhen">広東省深圳市</string>
+    <string name="region_china">中国</string>
+    <string name="region_san_francisco">サンフランシスコ・ベイエリア</string>
+    <string name="region_macau">マカオ</string>
+    <string name="region_malaysia">マレーシア</string>
+</resources>
