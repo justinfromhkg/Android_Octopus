@@ -35,13 +35,13 @@ jobs:
         run: ./gradlew test assembleDebug --stacktrace
 
       - name: Prepare release APK
-        run: cp app/build/outputs/apk/debug/app-debug.apk "Android_Octopus-${GITHUB_REF_NAME}.apk"
+        run: cp app/build/outputs/apk/debug/app-debug.apk "Transit_Card_Reader-${GITHUB_REF_NAME}.apk"
 
       - name: Create GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
         run: >-
           gh release create "${GITHUB_REF_NAME}"
-          "Android_Octopus-${GITHUB_REF_NAME}.apk"
-          --title "Android Octopus ${GITHUB_REF_NAME}"
-          --notes "Initial experimental Android release. This installable APK is debug-signed for direct testing. It reads physical Octopus cards in read-only NFC-F mode; verify important balance estimates with the official Octopus app."
+          "Transit_Card_Reader-${GITHUB_REF_NAME}.apk"
+          --title "Transit Card Reader ${GITHUB_REF_NAME}"
+          --notes "Experimental, debug-signed APK for direct testing on NFC-capable Android phones. Adds read-only profiles for Octopus, EasyCard, iPASS, EZ-Link/CEPAS, Suica/PASMO/ICOCA, Yangchengtong, Shenzhentong, China T-Union, Clipper, Macau Pass, and Touch 'n Go. Balance availability depends on the card generation and whether its data is public; see the README for the support matrix and limitations."

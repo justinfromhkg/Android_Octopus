@@ -2,23 +2,36 @@ package com.example.octopusreader.ui
 
 import androidx.lifecycle.ViewModel
 import com.example.octopusreader.nfc.CardReadResult
-import com.example.octopusreader.nfc.OctopusScan
+import com.example.octopusreader.nfc.TransitCardProfile
+import com.example.octopusreader.nfc.TransitCardScan
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-data class OctopusReaderUiState(
+data class TransitCardReaderUiState(
+    val selectedProfile: TransitCardProfile = TransitCardProfile.OCTOPUS,
     val nfcSupported: Boolean = true,
     val nfcEnabled: Boolean = true,
     val isWaitingForCard: Boolean = false,
     val isReading: Boolean = false,
-    val status: String = "Ready to scan a physical Octopus card.",
-    val lastScan: OctopusScan? = null,
+    val status: String = "Choose a card system, then tap Scan.",
+    val lastScan: TransitCardScan? = null,
 )
 
-class OctopusReaderViewModel : ViewModel() {
-    private val _uiState = MutableStateFlow(OctopusReaderUiState())
-    val uiState: StateFlow<OctopusReaderUiState> = _uiState.asStateFlow()
+class TransitCardReaderViewModel : ViewModel() {
+    private val _uiState = MutableStateFlow(TransitCardReaderUiState())
+    val uiState: StateFlow<TransitCardReaderUiState> = _uiState.asStateFlow()
+
+    fun selectProfile(profile: TransitCardProfile) {
+        val previous = _uiState.value
+        if (previous.isReading) return
+        _uiState.value = previous.copy(
+            selectedProfile = profile,
+            isWaitingForCard = false,
+            status = "${profile.displayName} selected. Tap Scan when ready.",
+            lastScan = null,
+        )
+    }
 
     fun updateNfcStatus(supported: Boolean, enabled: Boolean) {
         val previous = _uiState.value
@@ -31,7 +44,7 @@ class OctopusReaderViewModel : ViewModel() {
             status = when {
                 !supported -> "This Android phone does not support NFC."
                 !enabled -> "NFC is turned off. Enable it in Android settings."
-                recovered -> "NFC is ready. Tap the scan button to begin."
+                recovered -> "NFC is ready. Choose a card system and tap Scan."
                 else -> previous.status
             },
         )
@@ -43,21 +56,21 @@ class OctopusReaderViewModel : ViewModel() {
 
         _uiState.value = previous.copy(
             isWaitingForCard = true,
-            status = "Hold the Octopus card flat against the back of the phone.",
+            status = "Hold the ${previous.selectedProfile.displayName} card flat against the back of the phone.",
         )
     }
 
     @Synchronized
-    fun beginRead(): Boolean {
+    fun beginRead(): TransitCardProfile? {
         val previous = _uiState.value
-        if (!previous.isWaitingForCard || previous.isReading) return false
+        if (!previous.isWaitingForCard || previous.isReading) return null
 
         _uiState.value = previous.copy(
             isWaitingForCard = false,
             isReading = true,
-            status = "Reading the Octopus card…",
+            status = "Reading ${previous.selectedProfile.displayName}…",
         )
-        return true
+        return previous.selectedProfile
     }
 
     fun completeRead(result: CardReadResult) {
@@ -66,7 +79,7 @@ class OctopusReaderViewModel : ViewModel() {
             is CardReadResult.Success -> previous.copy(
                 isWaitingForCard = false,
                 isReading = false,
-                status = "Octopus card read successfully.",
+                status = "${result.scan.detectedName} read successfully.",
                 lastScan = result.scan,
             )
 

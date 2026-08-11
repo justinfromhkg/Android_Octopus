@@ -1,87 +1,113 @@
-# Octopus Reader for Android
+# Transit Card Reader for Android
 
-A local, native Android application that reads a **physical** Hong Kong Octopus
-card over NFC-F (FeliCa). It checks system code `8008`, requests block 0 from
-service `0117`, and displays the card ID plus a community-decoded balance
-estimate.
+A native, read-only Android NFC application for inspecting physical transit
+cards from Hong Kong, Taiwan, Singapore, Japan, mainland China, the San
+Francisco Bay Area, Macau, and Malaysia.
 
 Source repository: [justinfromhkg/Android_Octopus](https://github.com/justinfromhkg/Android_Octopus)
 
-The initial GitHub release workflow builds an installable, debug-signed APK for
-direct testing. It is not a Google Play production-signed package.
+## Supported card profiles
 
-## Important limitations
+| Card profile | What this version can read | Important limitation |
+| --- | --- | --- |
+| Octopus (Hong Kong) | NFC identifier and community-decoded balance estimate | The estimate is unofficial; verify important amounts with an official reader |
+| EasyCard (Taiwan) | NFC identifier and technology metadata | Balance sectors require issuer MIFARE Classic keys |
+| iPASS (Taiwan) | NFC identifier and technology metadata | Stored-value data varies by generation and is not decoded here |
+| EZ-Link / CEPAS (Singapore) | Card number and balance on compatible legacy CEPAS cards | SimplyGo/account-based cards may not keep a readable local balance |
+| Suica / PASMO / ICOCA (Japan) | NFC identifier and latest stored balance | These interoperable cards share system code `0003`; the exact brand is not always distinguishable |
+| Yangchengtong (Guangdong) | Balance on compatible CPU/City Union/T-Union cards; identifier fallback | Older MIFARE variants may require keys |
+| Shenzhentong (Guangdong) | Balance on compatible CPU/T-Union cards; identifier fallback | Older MIFARE variants may require keys |
+| China T-Union | Balance on compatible PBOC/T-Union cards | Issuer and card-generation behavior can vary |
+| Clipper (San Francisco Bay Area) | Balance from the public application on compatible classic DESFire cards | Newer account-based products may use a different layout |
+| Macau Pass | NFC identifier and technology metadata | Protected stored-value data is not decoded |
+| Touch 'n Go (Malaysia) | NFC identifier and technology metadata | Balance sectors require issuer MIFARE Classic keys |
 
-- This is an independent educational prototype, not an official Octopus Cards
-  Limited application.
-- The balance calculation uses a community-documented card format rather than a
-  generally available official Octopus API: `(raw - 500) / 10` HKD.
-- Verify important balances with the official Octopus app or a supported reader.
-- The application performs only a FeliCa **Read Without Encryption** command. It
-  contains no write, top-up, payment, or transaction code.
+“Identifier only” is intentional. The app does not contain issuer secrets,
+guess authentication keys, bypass access control, or claim a balance when a
+card does not expose one publicly.
+
+## How to use it
+
+1. Use a real NFC-capable Android phone and turn NFC on.
+2. Open **Transit Card Reader**.
+3. Choose the matching card profile and tap **Scan**.
+4. Hold the physical card still against the phone's NFC antenna until the
+   result appears. Antenna position varies by phone.
+
+Android emulators cannot scan a physical transit card. This app reads physical
+cards only; it does not read cards stored inside Apple Wallet or Google Wallet.
+
+## Privacy and safety
+
+- The manifest requests only Android's NFC permission and has no internet
+  permission.
+- Results remain in memory and disappear when Android ends the app process.
+- Every implemented card command is read-only. There is no top-up, payment,
+  card-write, or key-guessing code.
 - Scan only cards you own or have permission to inspect.
-- A real NFC-capable Android phone is required. Android emulators cannot scan a
-  physical Octopus card.
+- This is an independent educational prototype and is not affiliated with any
+  transit-card issuer.
 
-## Privacy
+## Install the APK from GitHub
 
-The manifest requests only the Android NFC permission. It does **not** request
-internet access. The most recent result is held only in memory and disappears
-when Android ends the app process.
+1. Open the repository's [Releases](https://github.com/justinfromhkg/Android_Octopus/releases)
+   page on the Android phone.
+2. Download the newest `Transit_Card_Reader-v*.apk` file.
+3. Allow the browser or file manager to install unknown apps if Android asks,
+   then open the APK.
 
-## Open and run after Android Studio finishes downloading
+Release APKs are debug-signed for direct testing. They are not Google Play
+production-signed packages.
+
+## Open and run your own build
 
 1. Install and start Android Studio.
-2. Choose **Open** and select this folder:
-   `/Users/jus-mac/Documents/OctopusReaderAndroid`
-3. Allow the first Gradle sync to finish. If prompted, install Android SDK 36
-   and SDK Build Tools 36.0.0. Android Studio's bundled JDK 17 is suitable.
+2. Choose **Open** and select
+   `/Users/jus-mac/Documents/OctopusReaderAndroid`.
+3. Let Gradle sync finish. If prompted, install Android SDK 36 and Build Tools
+   36.0.0. Android Studio's bundled JDK 17 is suitable.
 4. On the Android phone, enable **Developer options** and **USB debugging**.
-5. Connect the phone to the Mac by USB and approve the debugging prompt on the
-   phone. Make sure NFC is turned on.
-6. Select the phone in Android Studio's device menu and click the green **Run**
-   triangle.
-7. In the app, tap **Scan Octopus Card** and move the physical card around the
-   back of the phone until it is detected. NFC antenna placement varies by
-   device.
+5. Connect the phone by USB, approve the debugging prompt, and turn NFC on.
+6. Select the phone in Android Studio and click the green **Run** triangle.
 
-No Google Play developer account or Android “team” is needed to install and run
-your own debug build on your own phone.
+No Google Play developer account or Android “team” is needed to run your own
+debug build on your own phone.
 
-## Build and test from Terminal
-
-After Android Studio and its SDK are installed:
+From Terminal, after Android Studio and its SDK are installed:
 
 ```bash
 cd /Users/jus-mac/Documents/OctopusReaderAndroid
-./gradlew test
-./gradlew assembleDebug
+./gradlew test assembleDebug
+adb install -r app/build/outputs/apk/debug/app-debug.apk
 ```
-
-The debug APK will be created under
-`app/build/outputs/apk/debug/app-debug.apk`. Install it on a connected phone
-with Android Studio, or with `adb install -r app/build/outputs/apk/debug/app-debug.apk`.
 
 ## Project layout
 
-- `MainActivity.kt` enables Android NFC reader mode for NFC-F cards.
-- `nfc/OctopusProtocol.kt` builds and validates the FeliCa command and response.
-- `nfc/OctopusTagReader.kt` performs the physical card read off the UI thread.
-- `ui/` contains the Compose screen and view model.
-- `OctopusProtocolTest.kt` tests command bytes, balance decoding, and error
-  handling without requiring a phone.
+- `MainActivity.kt` enables Android reader mode for NFC-A, NFC-B, and NFC-F.
+- `nfc/FelicaProtocol.kt` handles Octopus and Japanese FeliCa reads.
+- `nfc/Iso7816TransitProtocol.kt` handles CEPAS and Chinese PBOC/T-Union APDUs.
+- `nfc/DesfireTransitProtocol.kt` handles the public classic Clipper application.
+- `nfc/TransitCardReader.kt` selects the reader for the chosen profile and
+  provides safe identifier-only fallbacks.
+- `ui/` contains the Jetpack Compose screen and state holder.
+- `app/src/test/` covers command bytes, response parsing, signed balances, and
+  the complete profile list without requiring a phone.
+
+The application ID remains `com.example.octopusreader` so this release installs
+as an update over earlier versions of this project.
+
+## Technical references
+
+- [Android advanced NFC guide](https://developer.android.com/develop/connectivity/nfc/advanced-nfc)
+- [Android `IsoDep` API](https://developer.android.com/reference/android/nfc/tech/IsoDep)
+- [Android `NfcF` API](https://developer.android.com/reference/android/nfc/tech/NfcF)
+- [Metrodroid Suica-family constants](https://github.com/metrodroid/metrodroid/blob/04a603ba639f7a270b7bdbf24158c7d601087c29/src/commonMain/kotlin/au/id/micolous/metrodroid/transit/suica/SuicaConsts.kt)
+- [Metrodroid CEPAS protocol](https://github.com/metrodroid/metrodroid/blob/04a603ba639f7a270b7bdbf24158c7d601087c29/src/commonMain/kotlin/au/id/micolous/metrodroid/card/cepas/CEPASProtocol.kt)
+- [Metrodroid China transit-card protocol](https://github.com/metrodroid/metrodroid/blob/04a603ba639f7a270b7bdbf24158c7d601087c29/src/commonMain/kotlin/au/id/micolous/metrodroid/card/china/ChinaCard.kt)
+- [Metrodroid Clipper parser](https://github.com/metrodroid/metrodroid/blob/04a603ba639f7a270b7bdbf24158c7d601087c29/src/commonMain/kotlin/au/id/micolous/metrodroid/transit/clipper/ClipperTransitData.kt)
 
 ## Apple version
 
 An Android APK cannot run on an iPhone. The separate native iPhone project is
-already stored at `/Users/jus-mac/Documents/OctopusReader`. Its `README.md`
-explains how to choose an Apple development team, sign the app, and run it on a
-physical iPhone from Xcode.
-
-## Technical references
-
-- [Android NFC overview](https://developer.android.com/develop/connectivity/nfc)
-- [Android NFC-F API](https://developer.android.com/reference/android/nfc/tech/NfcF)
-- [Android advanced NFC guide](https://developer.android.com/develop/connectivity/nfc/advanced-nfc)
-- [Android Gradle plugin 9.2 compatibility](https://developer.android.com/build/releases/agp-9-2-0-release-notes)
-- [Jetpack Compose setup](https://developer.android.com/develop/ui/compose/setup-compose-dependencies-and-compiler)
+stored at `/Users/jus-mac/Documents/OctopusReader`; its README explains Apple
+development-team signing and running the app on a physical iPhone.

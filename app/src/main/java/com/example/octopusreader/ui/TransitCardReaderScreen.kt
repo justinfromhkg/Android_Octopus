@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -20,15 +19,21 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -38,17 +43,21 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.octopusreader.nfc.OctopusScan
+import com.example.octopusreader.nfc.TransitBalance
+import com.example.octopusreader.nfc.TransitCardProfile
+import com.example.octopusreader.nfc.TransitCardScan
+import java.math.BigDecimal
 import java.text.NumberFormat
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
+import java.util.Currency
 import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun OctopusReaderScreen(
-    viewModel: OctopusReaderViewModel,
+fun TransitCardReaderScreen(
+    viewModel: TransitCardReaderViewModel,
     onOpenNfcSettings: () -> Unit,
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -58,7 +67,7 @@ fun OctopusReaderScreen(
             CenterAlignedTopAppBar(
                 title = {
                     Text(
-                        text = "Octopus Reader",
+                        text = "Transit Card Reader",
                         fontWeight = FontWeight.SemiBold,
                     )
                 },
@@ -74,6 +83,11 @@ fun OctopusReaderScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             HeroCard()
+            ProfileSelector(
+                selected = state.selectedProfile,
+                enabled = !state.isReading,
+                onSelect = viewModel::selectProfile,
+            )
             InstructionCard()
             StatusCard(state)
 
@@ -94,7 +108,7 @@ fun OctopusReaderScreen(
                     text = when {
                         state.isReading -> "Reading…"
                         state.isWaitingForCard -> "Waiting for card…"
-                        else -> "Scan Octopus Card"
+                        else -> "Scan ${state.selectedProfile.displayName}"
                     },
                     fontWeight = FontWeight.SemiBold,
                 )
@@ -110,7 +124,7 @@ fun OctopusReaderScreen(
             }
 
             Text(
-                text = "Physical cards only. The app reads one public-facing FeliCa service and never writes to the card.",
+                text = "Read-only: no top-up, payment, authentication-key guessing, or card writes. Results stay on this screen and are not uploaded.",
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontSize = 12.sp,
                 lineHeight = 17.sp,
@@ -153,18 +167,85 @@ private fun HeroCard() {
 
             Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
                 Text(
-                    text = "Tap. Read. Keep it private.",
+                    text = "One phone. Many transit cards.",
                     color = MaterialTheme.colorScheme.onPrimaryContainer,
                     fontWeight = FontWeight.Bold,
                     fontSize = 23.sp,
                     lineHeight = 28.sp,
                 )
                 Text(
-                    text = "Check a physical Octopus card directly on your Android phone.",
+                    text = "Read supported physical cards without sending their data anywhere.",
                     color = MaterialTheme.colorScheme.onPrimaryContainer,
                     lineHeight = 20.sp,
                 )
             }
+        }
+    }
+}
+
+@Composable
+private fun ProfileSelector(
+    selected: TransitCardProfile,
+    enabled: Boolean,
+    onSelect: (TransitCardProfile) -> Unit,
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    Card(
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        shape = RoundedCornerShape(20.dp),
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Column(
+            modifier = Modifier.padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Text("Card system", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+            Box(modifier = Modifier.fillMaxWidth()) {
+                OutlinedButton(
+                    onClick = { expanded = true },
+                    enabled = enabled,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text("${selected.displayName} — ${selected.region}")
+                }
+                DropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false },
+                ) {
+                    TransitCardProfile.entries.forEach { profile ->
+                        DropdownMenuItem(
+                            text = {
+                                Column {
+                                    Text(profile.displayName, fontWeight = FontWeight.SemiBold)
+                                    Text(
+                                        profile.region,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        fontSize = 12.sp,
+                                    )
+                                }
+                            },
+                            onClick = {
+                                expanded = false
+                                onSelect(profile)
+                            },
+                        )
+                    }
+                }
+            }
+            Text(
+                text = selected.technologyHint,
+                color = MaterialTheme.colorScheme.primary,
+                fontWeight = FontWeight.Medium,
+                fontSize = 13.sp,
+            )
+            Text(
+                text = selected.capability,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                fontSize = 13.sp,
+                lineHeight = 18.sp,
+            )
         }
     }
 }
@@ -181,14 +262,10 @@ private fun InstructionCard() {
             modifier = Modifier.padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text(
-                text = "How to scan",
-                fontWeight = FontWeight.Bold,
-                fontSize = 18.sp,
-            )
-            Step(1, "Tap “Scan Octopus Card”.")
-            Step(2, "Hold the card flat against the back of the phone.")
-            Step(3, "Keep it still until the result appears.")
+            Text("How to scan", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+            Step(1, "Choose the matching card system.")
+            Step(2, "Tap the Scan button.")
+            Step(3, "Hold the physical card still against the phone's NFC antenna.")
         }
     }
 }
@@ -214,12 +291,8 @@ private fun Step(number: Int, text: String) {
 }
 
 @Composable
-private fun StatusCard(state: OctopusReaderUiState) {
-    val isProblem = !state.nfcSupported || !state.nfcEnabled ||
-        (!state.isWaitingForCard && !state.isReading && state.status != "Octopus card read successfully." &&
-            state.status != "Ready to scan a physical Octopus card." &&
-            state.status != "NFC is ready. Tap the scan button to begin.")
-
+private fun StatusCard(state: TransitCardReaderUiState) {
+    val isProblem = !state.nfcSupported || !state.nfcEnabled
     Surface(
         color = if (isProblem) {
             MaterialTheme.colorScheme.errorContainer
@@ -256,10 +329,7 @@ private fun StatusCard(state: OctopusReaderUiState) {
 }
 
 @Composable
-private fun ResultCard(scan: OctopusScan) {
-    val currencyFormatter = NumberFormat.getCurrencyInstance(
-        Locale.Builder().setLanguage("en").setRegion("HK").build(),
-    )
+private fun ResultCard(scan: TransitCardScan) {
     val timeFormatter = DateTimeFormatter
         .ofLocalizedTime(FormatStyle.MEDIUM)
         .withZone(ZoneId.systemDefault())
@@ -275,65 +345,102 @@ private fun ResultCard(scan: OctopusScan) {
             verticalArrangement = Arrangement.spacedBy(13.dp),
         ) {
             Text(
-                text = "Estimated balance",
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                fontWeight = FontWeight.Medium,
-            )
-            Text(
-                text = currencyFormatter.format(scan.estimatedBalanceHkd),
-                color = MaterialTheme.colorScheme.primary,
-                fontSize = 38.sp,
-                lineHeight = 42.sp,
+                text = scan.detectedName,
                 fontWeight = FontWeight.Bold,
+                fontSize = 20.sp,
             )
+
+            if (scan.balance != null) {
+                Text(
+                    text = if (scan.balance.isEstimated) "Estimated balance" else "Balance",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontWeight = FontWeight.Medium,
+                )
+                Text(
+                    text = formatBalance(scan.balance),
+                    color = MaterialTheme.colorScheme.primary,
+                    fontSize = 38.sp,
+                    lineHeight = 42.sp,
+                    fontWeight = FontWeight.Bold,
+                )
+            } else {
+                Text(
+                    text = "Card detected",
+                    color = MaterialTheme.colorScheme.primary,
+                    fontSize = 28.sp,
+                    fontWeight = FontWeight.Bold,
+                )
+                Text(
+                    text = "Balance unavailable",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontWeight = FontWeight.Medium,
+                )
+            }
+
             Text(
-                text = "Community-decoded estimate — verify important amounts with the official Octopus app or a supported reader.",
+                text = scan.note,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontSize = 12.sp,
                 lineHeight = 17.sp,
             )
 
             HorizontalDivider()
-            ResultRow("Card ID", scan.cardId, monospace = true)
-            ResultRow("System code", scan.systemCode, monospace = true)
-            ResultRow("Raw balance", scan.rawBalance.toString(), monospace = true)
+            ResultRow("Selected profile", scan.selectedProfile.displayName)
+            ResultRow("NFC identifier", scan.cardId, monospace = true)
+            scan.cardNumber?.let { ResultRow("Card number", it, monospace = true) }
+            scan.systemCode?.let { ResultRow("System code", it, monospace = true) }
+            ResultRow("Technologies", scan.technology)
+            ResultRow("Read protocol", scan.protocol)
             ResultRow("Scanned", timeFormatter.format(scan.scannedAt))
 
-            Text(
-                text = "Raw block",
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.SemiBold,
-            )
-            SelectionContainer {
+            scan.rawDataHex?.let { rawData ->
                 Text(
-                    text = scan.rawBlockHex,
-                    fontFamily = FontFamily.Monospace,
-                    fontSize = 13.sp,
-                    lineHeight = 19.sp,
+                    text = "Raw read-only data",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.SemiBold,
                 )
+                SelectionContainer {
+                    Text(
+                        text = rawData,
+                        fontFamily = FontFamily.Monospace,
+                        fontSize = 13.sp,
+                        lineHeight = 19.sp,
+                    )
+                }
             }
         }
     }
 }
 
+private fun formatBalance(balance: TransitBalance): String {
+    val formatter = NumberFormat.getCurrencyInstance(Locale.US).apply {
+        currency = Currency.getInstance(balance.currencyCode)
+        minimumFractionDigits = balance.fractionDigits
+        maximumFractionDigits = balance.fractionDigits
+    }
+    val amount = BigDecimal.valueOf(balance.amountMinor).movePointLeft(balance.fractionDigits)
+    return formatter.format(amount)
+}
+
 @Composable
 private fun ResultRow(label: String, value: String, monospace: Boolean = false) {
-    Row(
+    Column(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.Top,
+        verticalArrangement = Arrangement.spacedBy(3.dp),
     ) {
         Text(
             text = label,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(end = 16.dp),
+            fontSize = 12.sp,
+            fontWeight = FontWeight.SemiBold,
         )
-        Text(
-            text = value,
-            textAlign = TextAlign.End,
-            fontWeight = FontWeight.Medium,
-            fontFamily = if (monospace) FontFamily.Monospace else FontFamily.Default,
-        )
+        SelectionContainer {
+            Text(
+                text = value,
+                fontWeight = FontWeight.Medium,
+                fontFamily = if (monospace) FontFamily.Monospace else FontFamily.Default,
+            )
+        }
     }
 }

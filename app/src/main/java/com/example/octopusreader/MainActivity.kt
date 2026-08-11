@@ -10,16 +10,16 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.lifecycle.lifecycleScope
-import com.example.octopusreader.nfc.OctopusTagReader
-import com.example.octopusreader.ui.OctopusReaderScreen
-import com.example.octopusreader.ui.OctopusReaderViewModel
+import com.example.octopusreader.nfc.TransitCardReader
+import com.example.octopusreader.ui.TransitCardReaderScreen
+import com.example.octopusreader.ui.TransitCardReaderViewModel
 import com.example.octopusreader.ui.theme.OctopusReaderTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class MainActivity : ComponentActivity(), NfcAdapter.ReaderCallback {
-    private val viewModel: OctopusReaderViewModel by viewModels()
+    private val viewModel: TransitCardReaderViewModel by viewModels()
     private var nfcAdapter: NfcAdapter? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -28,7 +28,7 @@ class MainActivity : ComponentActivity(), NfcAdapter.ReaderCallback {
 
         setContent {
             OctopusReaderTheme {
-                OctopusReaderScreen(
+                TransitCardReaderScreen(
                     viewModel = viewModel,
                     onOpenNfcSettings = {
                         startActivity(Intent(Settings.ACTION_NFC_SETTINGS))
@@ -49,7 +49,10 @@ class MainActivity : ComponentActivity(), NfcAdapter.ReaderCallback {
         adapter?.enableReaderMode(
             this,
             this,
-            NfcAdapter.FLAG_READER_NFC_F or NfcAdapter.FLAG_READER_SKIP_NDEF_CHECK,
+            NfcAdapter.FLAG_READER_NFC_A or
+                NfcAdapter.FLAG_READER_NFC_B or
+                NfcAdapter.FLAG_READER_NFC_F or
+                NfcAdapter.FLAG_READER_SKIP_NDEF_CHECK,
             Bundle().apply {
                 putInt(NfcAdapter.EXTRA_READER_PRESENCE_CHECK_DELAY, 250)
             },
@@ -62,11 +65,11 @@ class MainActivity : ComponentActivity(), NfcAdapter.ReaderCallback {
     }
 
     override fun onTagDiscovered(tag: Tag) {
-        if (!viewModel.beginRead()) return
+        val selectedProfile = viewModel.beginRead() ?: return
 
         lifecycleScope.launch {
             val result = withContext(Dispatchers.IO) {
-                OctopusTagReader.read(tag)
+                TransitCardReader.read(tag, selectedProfile)
             }
             viewModel.completeRead(result)
         }
