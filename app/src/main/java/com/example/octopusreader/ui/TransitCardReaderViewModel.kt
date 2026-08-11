@@ -14,9 +14,22 @@ data class TransitCardReaderUiState(
     val nfcEnabled: Boolean = true,
     val isWaitingForCard: Boolean = false,
     val isReading: Boolean = false,
-    val status: String = "Select the card you are using, then tap Scan.",
+    val status: ReaderStatus = ReaderStatus.SELECT_CARD,
     val lastScan: TransitCardScan? = null,
 )
+
+enum class ReaderStatus {
+    SELECT_CARD,
+    CARD_SELECTED,
+    NFC_UNSUPPORTED,
+    NFC_DISABLED,
+    NFC_READY,
+    SELECT_REQUIRED,
+    HOLD_CARD,
+    READING,
+    READ_SUCCESS,
+    READ_FAILED,
+}
 
 class TransitCardReaderViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(TransitCardReaderUiState())
@@ -28,7 +41,7 @@ class TransitCardReaderViewModel : ViewModel() {
         _uiState.value = previous.copy(
             selectedProfile = profile,
             isWaitingForCard = false,
-            status = "${profile.displayName} selected. Tap Scan when ready.",
+            status = ReaderStatus.CARD_SELECTED,
             lastScan = null,
         )
     }
@@ -42,9 +55,9 @@ class TransitCardReaderViewModel : ViewModel() {
             isWaitingForCard = if (supported && enabled) previous.isWaitingForCard else false,
             isReading = if (supported && enabled) previous.isReading else false,
             status = when {
-                !supported -> "This Android phone does not support NFC."
-                !enabled -> "NFC is turned off. Enable it in Android settings."
-                recovered -> "NFC is ready. Select your card and tap Scan."
+                !supported -> ReaderStatus.NFC_UNSUPPORTED
+                !enabled -> ReaderStatus.NFC_DISABLED
+                recovered -> ReaderStatus.NFC_READY
                 else -> previous.status
             },
         )
@@ -57,14 +70,14 @@ class TransitCardReaderViewModel : ViewModel() {
         if (profile == null) {
             _uiState.value = previous.copy(
                 isWaitingForCard = false,
-                status = "Select the card you are using before scanning.",
+                status = ReaderStatus.SELECT_REQUIRED,
             )
             return
         }
 
         _uiState.value = previous.copy(
             isWaitingForCard = true,
-            status = "Hold the ${profile.displayName} card flat against the back of the phone.",
+            status = ReaderStatus.HOLD_CARD,
         )
     }
 
@@ -77,7 +90,7 @@ class TransitCardReaderViewModel : ViewModel() {
         _uiState.value = previous.copy(
             isWaitingForCard = false,
             isReading = true,
-            status = "Reading ${profile.displayName}…",
+            status = ReaderStatus.READING,
         )
         return profile
     }
@@ -88,14 +101,15 @@ class TransitCardReaderViewModel : ViewModel() {
             is CardReadResult.Success -> previous.copy(
                 isWaitingForCard = false,
                 isReading = false,
-                status = "${result.scan.detectedName} read successfully.",
+                status = ReaderStatus.READ_SUCCESS,
                 lastScan = result.scan,
             )
 
             is CardReadResult.Failure -> previous.copy(
                 isWaitingForCard = false,
                 isReading = false,
-                status = result.message,
+                status = ReaderStatus.READ_FAILED,
+                lastScan = null,
             )
         }
     }

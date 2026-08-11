@@ -83,11 +83,34 @@ internal object Iso7816TransitProtocol {
 
     fun parseChinaBalanceCents(data: ByteArray): Long {
         require(data.size >= 4) { "The China transit balance response is too short." }
-        val value = ((data[0].toInt() and 0xFF) shl 24) or
+        val raw = ((data[0].toInt() and 0xFF) shl 24) or
             ((data[1].toInt() and 0xFF) shl 16) or
             ((data[2].toInt() and 0xFF) shl 8) or
             (data[3].toInt() and 0xFF)
-        return value.toLong()
+        val value = raw and 0x7FFFFFFF
+        return if (value and 0x40000000 != 0) {
+            value.toLong() - 0x80000000L
+        } else {
+            value.toLong()
+        }
+    }
+
+    fun parseChinaTUnionBalanceCents(
+        positivePurse: ByteArray,
+        debtPurse: ByteArray?,
+    ): Long {
+        val positive = parseChinaUnsignedBalanceCents(positivePurse)
+        val debt = debtPurse?.let(::parseChinaUnsignedBalanceCents) ?: 0L
+        return if (positive > 0L) positive else positive - debt
+    }
+
+    private fun parseChinaUnsignedBalanceCents(data: ByteArray): Long {
+        require(data.size >= 4) { "The China transit balance response is too short." }
+        val raw = ((data[0].toLong() and 0xFF) shl 24) or
+            ((data[1].toLong() and 0xFF) shl 16) or
+            ((data[2].toLong() and 0xFF) shl 8) or
+            (data[3].toLong() and 0xFF)
+        return raw and 0x7FFFFFFF
     }
 }
 

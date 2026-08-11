@@ -17,10 +17,7 @@ class TransitCardReaderViewModelTest {
         assertNull(viewModel.uiState.value.selectedProfile)
         assertFalse(viewModel.uiState.value.isWaitingForCard)
         assertNull(viewModel.beginRead())
-        assertEquals(
-            "Select the card you are using before scanning.",
-            viewModel.uiState.value.status,
-        )
+        assertEquals(ReaderStatus.SELECT_REQUIRED, viewModel.uiState.value.status)
     }
 
     @Test

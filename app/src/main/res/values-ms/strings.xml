@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Pembaca Kad Transit Pelbagai</string>
+    <string name="hero_title">Satu telefon. Pelbagai kad transit.</string>
+    <string name="hero_subtitle">Baca kad fizikal yang disokong tanpa menghantar data ke mana-mana.</string>
+    <string name="select_card_title">Pilih kad anda</string>
+    <string name="select_card_description">Wajib: pilih kad yang tepat sebelum mengimbas supaya aplikasi menggunakan protokol NFC baca sahaja yang betul.</string>
+    <string name="choose_card">Pilih kad transit</string>
+    <string name="no_card_selected">Tiada kad dipilih</string>
+    <string name="card_name_format">%1$s · %2$s</string>
+    <string name="card_selection_format">%1$s — %2$s</string>
+    <string name="how_to_scan">Cara mengimbas</string>
+    <string name="scan_step_1">Pilih sistem kad yang sepadan.</string>
+    <string name="scan_step_2">Ketik butang Imbas.</string>
+    <string name="scan_step_3">Pegang kad fizikal tanpa bergerak pada antena NFC telefon.</string>
+    <string name="button_reading">Sedang membaca…</string>
+    <string name="button_waiting">Menunggu kad…</string>
+    <string name="button_select_first">Pilih kad dahulu</string>
+    <string name="button_scan_card">Imbas %1$s</string>
+    <string name="open_nfc_settings">Buka tetapan NFC</string>
+    <string name="privacy_notice">Baca sahaja: tiada tambah nilai, pembayaran, tekaan kunci pengesahan atau penulisan kad. Hasil kekal pada skrin ini dan tidak dimuat naik.</string>
+
+    <string name="status_select_card">Pilih kad yang anda gunakan, kemudian ketik Imbas.</string>
+    <string name="status_card_selected">%1$s dipilih. Ketik Imbas apabila bersedia.</string>
+    <string name="status_nfc_unsupported">Telefon Android ini tidak menyokong NFC.</string>
+    <string name="status_nfc_disabled">NFC dimatikan. Hidupkannya dalam tetapan Android.</string>
+    <string name="status_nfc_ready">NFC sedia digunakan. Pilih kad anda dan ketik Imbas.</string>
+    <string name="status_select_required">Pilih kad yang anda gunakan sebelum mengimbas.</string>
+    <string name="status_hold_card">Pegang kad %1$s secara rata di belakang telefon tanpa bergerak.</string>
+    <string name="status_reading">Membaca %1$s…</string>
+    <string name="status_read_success">%1$s berjaya dibaca.</string>
+    <string name="status_read_failed">Kad tidak dapat dibaca. Semak jenis kad yang dipilih, pegang tanpa bergerak dan cuba lagi.</string>
+
+    <string name="estimated_balance">Anggaran baki</string>
+    <string name="balance">Baki</string>
+    <string name="card_detected">Kad dikesan</string>
+    <string name="balance_not_readable">Baki tidak dapat dibaca</string>
+    <string name="balance_note_estimated">Anggaran berdasarkan penyahkodan komuniti. Sahkan jumlah penting dengan pembaca rasmi.</string>
+    <string name="balance_note_public_read">Dibaca daripada rekod baki awam yang baca sahaja. Tiada arahan tulis dihantar.</string>
+    <string name="balance_reason_issuer_keys">Baki kad ini disimpan dalam sektor MIFARE yang dilindungi kunci pengeluar. Aplikasi tidak meneka atau membenamkan kunci rahsia, jadi hanya metadata NFC yang selamat dipaparkan.</string>
+    <string name="balance_reason_protected_format">Kad dikesan, tetapi format nilai tersimpannya dilindungi atau tidak didokumenkan secara awam. Hanya metadata NFC yang selamat dipaparkan.</string>
+    <string name="balance_reason_legacy_cepas">Dompet CEPAS lama yang serasi tidak ditemui. SimplyGo dan kad berasaskan akaun yang lebih baharu mungkin tidak menyimpan baki setempat pada kad.</string>
+    <string name="balance_reason_china_variant">Dompet CPU, City Union atau T-Union awam yang serasi tidak ditemui. Varian MIFARE lama mungkin memerlukan kunci pengeluar.</string>
+    <string name="balance_reason_clipper">Fail baki Clipper DESFire klasik yang awam tidak ditemui. Kad berasaskan akaun yang lebih baharu mungkin menggunakan format lain.</string>
+    <string name="balance_reason_not_exposed">Generasi kad ini tidak menyediakan rekod baki awam yang dijangka.</string>
+
+    <string name="capability_estimated">Anggaran baki dan pengecam kad</string>
+    <string name="capability_issuer_keys">Pengecam kad sahaja; sektor baki memerlukan kunci pengeluar</string>
+    <string name="capability_protected_format">Pengecam kad sahaja; data baki dilindungi tidak dinyahkod secara awam</string>
+    <string name="capability_legacy_cepas">Baki dan nombor kad pada kad CEPAS lama yang serasi</string>
+    <string name="capability_public_felica">Baki tersimpan terkini dan pengecam kad</string>
+    <string name="capability_china_variant">Baki pada kad CPU, City Union atau T-Union yang serasi; sandaran pengecam</string>
+    <string name="capability_china_public">Dompet baki positif dan hutang awam pada kad T-Union yang serasi</string>
+    <string name="capability_classic_clipper">Baki pada kad dengan aplikasi Clipper klasik yang awam</string>
+
+    <string name="selected_profile">Profil dipilih</string>
+    <string name="nfc_identifier">Pengecam NFC</string>
+    <string name="card_number">Nombor kad</string>
+    <string name="system_code">Kod sistem</string>
+    <string name="technologies">Teknologi</string>
+    <string name="read_protocol">Protokol bacaan</string>
+    <string name="scanned">Masa imbasan</string>
+    <string name="raw_read_only_data">Data mentah baca sahaja</string>
+
+    <string name="region_hong_kong">Hong Kong</string>
+    <string name="region_taiwan">Taiwan</string>
+    <string name="region_singapore">Singapura</string>
+    <string name="region_japan">Jepun</string>
+    <string name="region_guangzhou">Guangzhou, Guangdong</string>
+    <string name="region_shenzhen">Shenzhen, Guangdong</string>
+    <string name="region_china">China</string>
+    <string name="region_san_francisco">Kawasan Teluk San Francisco</string>
+    <string name="region_macau">Macau</string>
+    <string name="region_malaysia">Malaysia</string>
+</resources>
