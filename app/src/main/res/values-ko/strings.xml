@@ -46,6 +46,7 @@
     <string name="balance_reason_legacy_cepas">호환되는 기존 CEPAS 지갑이 노출되지 않았습니다. SimplyGo 및 최신 계정 기반 카드는 카드 안에 로컬 잔액을 저장하지 않을 수 있습니다.</string>
     <string name="balance_reason_china_variant">호환되는 공개 CPU, City Union 또는 T-Union 지갑이 노출되지 않았습니다. 이전 MIFARE 카드는 발급사 키가 필요할 수 있습니다.</string>
     <string name="balance_reason_clipper">공개된 기존 Clipper DESFire 잔액 파일이 노출되지 않았습니다. 최신 계정 기반 카드는 다른 형식을 사용할 수 있습니다.</string>
+    <string name="balance_reason_oyster">Oyster 잔액 데이터는 보호됩니다. 1세대 카드는 운영사 섹터 키가 필요하며 최신 DESFire 카드는 공개 잔액 파일을 제공하지 않습니다.</string>
     <string name="balance_reason_not_exposed">이 카드 세대에서는 예상된 공개 잔액 기록을 제공하지 않습니다.</string>
 
     <string name="capability_estimated">예상 잔액 및 카드 식별자</string>
@@ -56,6 +57,8 @@
     <string name="capability_china_variant">호환되는 CPU, City Union 또는 T-Union 카드 잔액. 미지원 시 식별자만 표시</string>
     <string name="capability_china_public">호환되는 T-Union 카드의 공개 잔액, 카드 상세 정보 및 최근 거래</string>
     <string name="capability_classic_clipper">공개된 기존 Clipper 애플리케이션이 있는 카드의 잔액</string>
+    <string name="capability_korean_public">호환되는 T-money 카드의 공개 잔액, 카드 상세 정보 및 최근 거래</string>
+    <string name="capability_oyster_protected">카드 세대 및 안전한 칩 메타데이터. Oyster 잔액 데이터는 보호됨</string>
 
     <string name="selected_profile">선택한 카드 종류</string>
     <string name="detected_card">감지된 카드/애플리케이션</string>
@@ -69,6 +72,8 @@
     <string name="card_details">카드 상세 정보</string>
     <string name="nfc_id_length">NFC 식별자 길이(바이트)</string>
     <string name="manufacturer_parameters">FeliCa 제조사 매개변수(PMm)</string>
+    <string name="android_discovery_system">Android 감지 시스템</string>
+    <string name="felica_system_codes">사용 가능한 FeliCa 시스템 코드</string>
     <string name="raw_balance_units">원시 잔액 단위(HK$0.10)</string>
     <string name="octopus_balance_basis">옥토퍼스 잔액 기준</string>
     <string name="application_version">애플리케이션 버전</string>
@@ -77,11 +82,24 @@
     <string name="valid_until">유효 종료일</string>
     <string name="balance_purse_layout">잔액/부채 지갑 인덱스</string>
     <string name="transaction_records_read">해석한 거래 기록</string>
-    <string name="recent_transactions">최근 교통연합 거래</string>
+    <string name="application_id">애플리케이션 식별자(AID)</string>
+    <string name="card_type_code">카드 유형 코드</string>
+    <string name="issue_date">발급일</string>
+    <string name="maximum_balance">최대 잔액</string>
+    <string name="card_generation">카드 세대/칩 계열</string>
+    <string name="memory_size">메모리 크기</string>
+    <string name="sector_count">섹터 수</string>
+    <string name="block_count">블록 수</string>
+    <string name="desfire_hardware_version">DESFire 하드웨어 버전</string>
+    <string name="desfire_software_version">DESFire 소프트웨어 버전</string>
+    <string name="desfire_chip_identifier">DESFire 칩 식별자</string>
+    <string name="recent_transactions">최근 거래</string>
     <string name="transaction_code_notice">교통연합 카드는 숫자 단말기, 노선 및 역 식별자를 저장하지만 신뢰할 수 있는 전국 공통 이름 목록은 저장하지 않습니다. 검증된 발급사별 매핑이 없으면 카드에 저장된 코드를 표시합니다. 지하철 기록에는 일반적으로 하차 단말기만 있고 승차역은 없습니다.</string>
+    <string name="tmoney_transaction_notice">T-money 기록은 거래 유형, 금액, 거래 후 잔액, 시간 및 단말기 코드를 제공합니다. 사람이 읽을 수 있는 노선명과 역명은 이 공개 기록에 안정적으로 저장되지 않습니다.</string>
     <string name="transaction_title">%1$d · %2$s</string>
     <string name="transaction_time">시간</string>
     <string name="transaction_amount">금액</string>
+    <string name="transaction_balance_after">거래 후 잔액</string>
     <string name="bus_route_code">버스/노선 코드</string>
     <string name="boarding_station">승차역</string>
     <string name="alighting_station_code">하차역 코드</string>
@@ -96,11 +114,13 @@
     <string name="transaction_bus">버스 이용</string>
     <string name="transaction_metro">지하철/철도 이용</string>
     <string name="transaction_purchase">운임/구매</string>
+    <string name="transaction_transit_ride">대중교통 이용</string>
     <string name="transaction_unknown">기타 거래</string>
 
     <string name="region_hong_kong">홍콩</string>
     <string name="region_taiwan">대만</string>
     <string name="region_singapore">싱가포르</string>
+    <string name="region_south_korea">대한민국</string>
     <string name="region_japan">일본</string>
     <string name="region_guangzhou">광둥성 광저우</string>
     <string name="region_shenzhen">광둥성 선전</string>
@@ -108,4 +128,5 @@
     <string name="region_san_francisco">샌프란시스코 베이 에어리어</string>
     <string name="region_macau">마카오</string>
     <string name="region_malaysia">말레이시아</string>
+    <string name="region_london_uk">영국 런던</string>
 </resources>

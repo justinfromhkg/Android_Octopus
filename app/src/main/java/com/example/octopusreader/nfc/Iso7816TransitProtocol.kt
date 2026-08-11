@@ -187,6 +187,8 @@ internal object Iso7816TransitProtocol {
             type = type,
             timestamp = timestamp,
             amountMinor = signedAmount,
+            currencyCode = "CNY",
+            fractionDigits = 2,
             transactionCode = transactionCode,
             sequenceCounter = record.readUnsignedLong(0, 2).toInt(),
             overdraftMinor = record.readUnsignedLong(2, 3),

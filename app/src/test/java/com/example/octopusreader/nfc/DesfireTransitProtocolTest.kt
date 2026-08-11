@@ -65,4 +65,33 @@ class DesfireTransitProtocolTest {
         assertArrayEquals(byteArrayOf(0x01, 0x02), frame.data)
         assertEquals(0xAF, frame.status)
     }
+
+    @Test
+    fun `DESFire GetVersion command and response expose safe chip metadata`() {
+        assertArrayEquals(
+            byteArrayOf(0x90.toByte(), 0x60, 0x00, 0x00, 0x00),
+            DesfireTransitProtocol.getVersion(),
+        )
+        val data = ByteArray(28).apply {
+            this[0] = 0x04
+            this[1] = 0x01
+            this[3] = 0x01
+            this[4] = 0x02
+            this[5] = 0x18
+            this[10] = 0x03
+            this[11] = 0x04
+            byteArrayOf(1, 2, 3, 4, 5, 6, 7).copyInto(this, destinationOffset = 14)
+        }
+
+        val version = DesfireTransitProtocol.parseVersion(data)
+
+        assertEquals(4, version.hardwareVendorId)
+        assertEquals(1, version.hardwareType)
+        assertEquals(1, version.hardwareMajor)
+        assertEquals(2, version.hardwareMinor)
+        assertEquals(0x18, version.hardwareStorageCode)
+        assertEquals(3, version.softwareMajor)
+        assertEquals(4, version.softwareMinor)
+        assertEquals("01020304050607", version.chipIdentifier)
+    }
 }

@@ -46,6 +46,7 @@
     <string name="balance_reason_legacy_cepas">対応する旧式CEPASパースが見つかりません。SimplyGoや新しいアカウントベースのカードは、カード内に残高を保存していない場合があります。</string>
     <string name="balance_reason_china_variant">対応する公開CPU、City Union、T-Unionパースが見つかりません。旧式MIFAREカードでは発行者キーが必要な場合があります。</string>
     <string name="balance_reason_clipper">公開されている従来型Clipper DESFire残高ファイルが見つかりません。新しいアカウントベースのカードは別の形式を使用する場合があります。</string>
+    <string name="balance_reason_oyster">Oysterの残高データは保護されています。初代カードには事業者のセクターキーが必要で、新しいDESFireカードには公開残高ファイルがありません。</string>
     <string name="balance_reason_not_exposed">この世代のカードでは、想定される公開残高記録が提供されていません。</string>
 
     <string name="capability_estimated">推定残高とカード識別子</string>
@@ -56,6 +57,8 @@
     <string name="capability_china_variant">対応するCPU、City Union、T-Unionカードの残高。非対応時は識別子のみ</string>
     <string name="capability_china_public">対応するT-Unionカードの公開残高、カード詳細、最近の取引</string>
     <string name="capability_classic_clipper">公開された従来型Clipperアプリを持つカードの残高</string>
+    <string name="capability_korean_public">対応するT-moneyカードの公開残高、カード詳細、最近の取引</string>
+    <string name="capability_oyster_protected">カード世代と安全なチップ情報。Oyster残高データは保護されています</string>
 
     <string name="selected_profile">選択したカード</string>
     <string name="detected_card">検出したカード／アプリ</string>
@@ -69,6 +72,8 @@
     <string name="card_details">カード詳細</string>
     <string name="nfc_id_length">NFC識別子の長さ（バイト）</string>
     <string name="manufacturer_parameters">FeliCa製造者パラメータ（PMm）</string>
+    <string name="android_discovery_system">Android検出システム</string>
+    <string name="felica_system_codes">利用可能なFeliCaシステムコード</string>
     <string name="raw_balance_units">生の残高単位（HK$0.10）</string>
     <string name="octopus_balance_basis">Octopus残高基準</string>
     <string name="application_version">アプリケーションバージョン</string>
@@ -77,11 +82,24 @@
     <string name="valid_until">有効期限</string>
     <string name="balance_purse_layout">残高／債務パースのインデックス</string>
     <string name="transaction_records_read">解析した取引記録</string>
-    <string name="recent_transactions">最近の交通聯合取引</string>
+    <string name="application_id">アプリケーション識別子（AID）</string>
+    <string name="card_type_code">カード種別コード</string>
+    <string name="issue_date">発行日</string>
+    <string name="maximum_balance">残高上限</string>
+    <string name="card_generation">カード世代／チップ系列</string>
+    <string name="memory_size">メモリー容量</string>
+    <string name="sector_count">セクター数</string>
+    <string name="block_count">ブロック数</string>
+    <string name="desfire_hardware_version">DESFireハードウェア版</string>
+    <string name="desfire_software_version">DESFireソフトウェア版</string>
+    <string name="desfire_chip_identifier">DESFireチップ識別子</string>
+    <string name="recent_transactions">最近の取引</string>
     <string name="transaction_code_notice">交通聯合カードには数値の端末・路線・駅識別子が保存されますが、信頼できる全国共通の名称一覧は保存されません。発行者別の検証済み対応表がない場合は、カード内のコードを表示します。地下鉄の記録には通常、出場端末のみがあり、乗車駅はありません。</string>
+    <string name="tmoney_transaction_notice">T-moneyの記録には取引種別、金額、取引後残高、時刻、端末コードが含まれます。公開記録には路線名や駅名が確実には保存されていません。</string>
     <string name="transaction_title">%1$d · %2$s</string>
     <string name="transaction_time">日時</string>
     <string name="transaction_amount">金額</string>
+    <string name="transaction_balance_after">取引後残高</string>
     <string name="bus_route_code">バス／路線コード</string>
     <string name="boarding_station">乗車駅</string>
     <string name="alighting_station_code">降車駅コード</string>
@@ -96,11 +114,13 @@
     <string name="transaction_bus">バス乗車</string>
     <string name="transaction_metro">地下鉄／鉄道乗車</string>
     <string name="transaction_purchase">運賃／購入</string>
+    <string name="transaction_transit_ride">交通利用</string>
     <string name="transaction_unknown">その他の取引</string>
 
     <string name="region_hong_kong">香港</string>
     <string name="region_taiwan">台湾</string>
     <string name="region_singapore">シンガポール</string>
+    <string name="region_south_korea">韓国</string>
     <string name="region_japan">日本</string>
     <string name="region_guangzhou">広東省広州市</string>
     <string name="region_shenzhen">広東省深圳市</string>
@@ -108,4 +128,5 @@
     <string name="region_san_francisco">サンフランシスコ・ベイエリア</string>
     <string name="region_macau">マカオ</string>
     <string name="region_malaysia">マレーシア</string>
+    <string name="region_london_uk">英国・ロンドン</string>
 </resources>
