@@ -32,8 +32,20 @@ enum class TransitCardProfile(
         technologyHint = "ISO-DEP / CEPAS",
         capability = "Balance and card number on compatible legacy CEPAS cards",
     ),
-    JAPAN_IC(
-        displayName = "Suica / PASMO / ICOCA",
+    SUICA(
+        displayName = "Suica",
+        region = "Japan",
+        technologyHint = "FeliCa / NFC-F",
+        capability = "Latest stored balance and card identifier",
+    ),
+    PASMO(
+        displayName = "PASMO",
+        region = "Japan",
+        technologyHint = "FeliCa / NFC-F",
+        capability = "Latest stored balance and card identifier",
+    ),
+    ICOCA(
+        displayName = "ICOCA",
         region = "Japan",
         technologyHint = "FeliCa / NFC-F",
         capability = "Latest stored balance and card identifier",

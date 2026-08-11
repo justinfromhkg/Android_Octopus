@@ -37,12 +37,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.octopusreader.R
 import com.example.octopusreader.nfc.TransitBalance
 import com.example.octopusreader.nfc.TransitCardProfile
 import com.example.octopusreader.nfc.TransitCardScan
@@ -67,8 +69,10 @@ fun TransitCardReaderScreen(
             CenterAlignedTopAppBar(
                 title = {
                     Text(
-                        text = "Transit Card Reader",
+                        text = stringResource(R.string.app_name),
                         fontWeight = FontWeight.SemiBold,
+                        fontSize = 18.sp,
+                        maxLines = 1,
                     )
                 },
             )
@@ -85,7 +89,7 @@ fun TransitCardReaderScreen(
             HeroCard()
             ProfileSelector(
                 selected = state.selectedProfile,
-                enabled = !state.isReading,
+                enabled = !state.isReading && !state.isWaitingForCard,
                 onSelect = viewModel::selectProfile,
             )
             InstructionCard()
@@ -98,6 +102,7 @@ fun TransitCardReaderScreen(
             Button(
                 onClick = viewModel::requestScan,
                 enabled = state.nfcSupported && state.nfcEnabled &&
+                    state.selectedProfile != null &&
                     !state.isWaitingForCard && !state.isReading,
                 modifier = Modifier
                     .fillMaxWidth()
@@ -108,7 +113,9 @@ fun TransitCardReaderScreen(
                     text = when {
                         state.isReading -> "Reading…"
                         state.isWaitingForCard -> "Waiting for card…"
-                        else -> "Scan ${state.selectedProfile.displayName}"
+                        state.selectedProfile == null -> "Select a card first"
+                        else -> state.selectedProfile?.let { "Scan ${it.displayName}" }
+                            ?: "Select a card first"
                     },
                     fontWeight = FontWeight.SemiBold,
                 )
@@ -185,7 +192,7 @@ private fun HeroCard() {
 
 @Composable
 private fun ProfileSelector(
-    selected: TransitCardProfile,
+    selected: TransitCardProfile?,
     enabled: Boolean,
     onSelect: (TransitCardProfile) -> Unit,
 ) {
@@ -201,14 +208,23 @@ private fun ProfileSelector(
             modifier = Modifier.padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            Text("Card system", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+            Text("Select your card", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+            Text(
+                text = "Required: choose the exact card before scanning so the app uses the correct read-only NFC protocol.",
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                fontSize = 13.sp,
+                lineHeight = 18.sp,
+            )
             Box(modifier = Modifier.fillMaxWidth()) {
                 OutlinedButton(
                     onClick = { expanded = true },
                     enabled = enabled,
                     modifier = Modifier.fillMaxWidth(),
                 ) {
-                    Text("${selected.displayName} — ${selected.region}")
+                    Text(
+                        selected?.let { "${it.displayName} — ${it.region}" }
+                            ?: "Choose a transit card",
+                    )
                 }
                 DropdownMenu(
                     expanded = expanded,
@@ -234,18 +250,27 @@ private fun ProfileSelector(
                     }
                 }
             }
-            Text(
-                text = selected.technologyHint,
-                color = MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.Medium,
-                fontSize = 13.sp,
-            )
-            Text(
-                text = selected.capability,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                fontSize = 13.sp,
-                lineHeight = 18.sp,
-            )
+            if (selected == null) {
+                Text(
+                    text = "No card selected",
+                    color = MaterialTheme.colorScheme.error,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 13.sp,
+                )
+            } else {
+                Text(
+                    text = selected.technologyHint,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Medium,
+                    fontSize = 13.sp,
+                )
+                Text(
+                    text = selected.capability,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontSize = 13.sp,
+                    lineHeight = 18.sp,
+                )
+            }
         }
     }
 }

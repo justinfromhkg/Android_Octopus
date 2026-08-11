@@ -5,7 +5,7 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
-private val OctopusColors = lightColorScheme(
+private val TransitCardColors = lightColorScheme(
     primary = Color(0xFF047D95),
     onPrimary = Color.White,
     primaryContainer = Color(0xFFC0F1FA),
@@ -20,9 +20,9 @@ private val OctopusColors = lightColorScheme(
 )
 
 @Composable
-fun OctopusReaderTheme(content: @Composable () -> Unit) {
+fun MultiTransitCardReaderTheme(content: @Composable () -> Unit) {
     MaterialTheme(
-        colorScheme = OctopusColors,
+        colorScheme = TransitCardColors,
         content = content,
     )
 }

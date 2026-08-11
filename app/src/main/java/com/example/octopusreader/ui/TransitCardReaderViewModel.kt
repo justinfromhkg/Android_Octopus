@@ -9,12 +9,12 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 data class TransitCardReaderUiState(
-    val selectedProfile: TransitCardProfile = TransitCardProfile.OCTOPUS,
+    val selectedProfile: TransitCardProfile? = null,
     val nfcSupported: Boolean = true,
     val nfcEnabled: Boolean = true,
     val isWaitingForCard: Boolean = false,
     val isReading: Boolean = false,
-    val status: String = "Choose a card system, then tap Scan.",
+    val status: String = "Select the card you are using, then tap Scan.",
     val lastScan: TransitCardScan? = null,
 )
 
@@ -44,7 +44,7 @@ class TransitCardReaderViewModel : ViewModel() {
             status = when {
                 !supported -> "This Android phone does not support NFC."
                 !enabled -> "NFC is turned off. Enable it in Android settings."
-                recovered -> "NFC is ready. Choose a card system and tap Scan."
+                recovered -> "NFC is ready. Select your card and tap Scan."
                 else -> previous.status
             },
         )
@@ -53,10 +53,18 @@ class TransitCardReaderViewModel : ViewModel() {
     fun requestScan() {
         val previous = _uiState.value
         if (!previous.nfcSupported || !previous.nfcEnabled || previous.isReading) return
+        val profile = previous.selectedProfile
+        if (profile == null) {
+            _uiState.value = previous.copy(
+                isWaitingForCard = false,
+                status = "Select the card you are using before scanning.",
+            )
+            return
+        }
 
         _uiState.value = previous.copy(
             isWaitingForCard = true,
-            status = "Hold the ${previous.selectedProfile.displayName} card flat against the back of the phone.",
+            status = "Hold the ${profile.displayName} card flat against the back of the phone.",
         )
     }
 
@@ -64,13 +72,14 @@ class TransitCardReaderViewModel : ViewModel() {
     fun beginRead(): TransitCardProfile? {
         val previous = _uiState.value
         if (!previous.isWaitingForCard || previous.isReading) return null
+        val profile = previous.selectedProfile ?: return null
 
         _uiState.value = previous.copy(
             isWaitingForCard = false,
             isReading = true,
-            status = "Reading ${previous.selectedProfile.displayName}…",
+            status = "Reading ${profile.displayName}…",
         )
-        return previous.selectedProfile
+        return profile
     }
 
     fun completeRead(result: CardReadResult) {

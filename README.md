@@ -1,4 +1,4 @@
-# Transit Card Reader for Android
+# Multi Transit Card Reader for Android
 
 A native, read-only Android NFC application for inspecting physical transit
 cards from Hong Kong, Taiwan, Singapore, Japan, mainland China, the San
@@ -29,9 +29,12 @@ card does not expose one publicly.
 ## How to use it
 
 1. Use a real NFC-capable Android phone and turn NFC on.
-2. Open **Transit Card Reader**.
-3. Choose the matching card profile and tap **Scan**.
-4. Hold the physical card still against the phone's NFC antenna until the
+2. Open **Multi Transit Card Reader**.
+3. In the required **Select your card** section, choose the exact card profile.
+   This tells the app which read-only protocol to use when a card or phone
+   supports several NFC technologies.
+4. Tap **Scan**.
+5. Hold the physical card still against the phone's NFC antenna until the
    result appears. Antenna position varies by phone.
 
 Android emulators cannot scan a physical transit card. This app reads physical
@@ -52,7 +55,7 @@ cards only; it does not read cards stored inside Apple Wallet or Google Wallet.
 
 1. Open the repository's [Releases](https://github.com/justinfromhkg/Android_Octopus/releases)
    page on the Android phone.
-2. Download the newest `Transit_Card_Reader-v*.apk` file.
+2. Download the newest `Multi_Transit_Card_Reader-v*.apk` file.
 3. Allow the browser or file manager to install unknown apps if Android asks,
    then open the APK.
 
@@ -95,6 +98,10 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 
 The application ID remains `com.example.octopusreader` so this release installs
 as an update over earlier versions of this project.
+
+The Gradle project is named `TransitCardReaderAndroid`. The existing local
+folder and GitHub repository names are retained so links and checkout paths do
+not break.
 
 ## Technical references
 
