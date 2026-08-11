@@ -34,7 +34,7 @@ when Android ends the app process.
 1. Install and start Android Studio.
 2. Choose **Open** and select this folder:
    `/Users/jus-mac/Documents/OctopusReaderAndroid`
-3. Allow the first Gradle sync to finish. If prompted, install Android SDK 37
+3. Allow the first Gradle sync to finish. If prompted, install Android SDK 36
    and SDK Build Tools 36.0.0. Android Studio's bundled JDK 17 is suitable.
 4. On the Android phone, enable **Developer options** and **USB debugging**.
 5. Connect the phone to the Mac by USB and approve the debugging prompt on the
