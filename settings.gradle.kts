@@ -14,5 +14,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "OctopusReaderAndroid"
+rootProject.name = "TransitCardReaderAndroid"
 include(":app")

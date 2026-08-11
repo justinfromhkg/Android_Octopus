@@ -13,7 +13,7 @@ import androidx.lifecycle.lifecycleScope
 import com.example.octopusreader.nfc.TransitCardReader
 import com.example.octopusreader.ui.TransitCardReaderScreen
 import com.example.octopusreader.ui.TransitCardReaderViewModel
-import com.example.octopusreader.ui.theme.OctopusReaderTheme
+import com.example.octopusreader.ui.theme.MultiTransitCardReaderTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -27,7 +27,7 @@ class MainActivity : ComponentActivity(), NfcAdapter.ReaderCallback {
         nfcAdapter = getSystemService(NfcManager::class.java)?.defaultAdapter
 
         setContent {
-            OctopusReaderTheme {
+            MultiTransitCardReaderTheme {
                 TransitCardReaderScreen(
                     viewModel = viewModel,
                     onOpenNfcSettings = {

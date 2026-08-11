@@ -15,7 +15,10 @@ object TransitCardReader {
     fun read(tag: Tag, profile: TransitCardProfile): CardReadResult = try {
         when (profile) {
             TransitCardProfile.OCTOPUS -> readOctopus(tag)
-            TransitCardProfile.JAPAN_IC -> readJapaneseIc(tag)
+            TransitCardProfile.SUICA,
+            TransitCardProfile.PASMO,
+            TransitCardProfile.ICOCA,
+            -> readJapaneseIc(tag, profile)
             TransitCardProfile.EZLINK -> readCepas(tag)
             TransitCardProfile.T_UNION,
             TransitCardProfile.YANGCHENGTONG,
@@ -81,7 +84,7 @@ object TransitCardReader {
         }
     }
 
-    private fun readJapaneseIc(tag: Tag): CardReadResult {
+    private fun readJapaneseIc(tag: Tag, profile: TransitCardProfile): CardReadResult {
         val nfcF = NfcF.get(tag)
             ?: return CardReadResult.Failure("Japanese IC cards require NFC-F (FeliCa).")
         val idm = tag.id
@@ -107,8 +110,8 @@ object TransitCardReader {
             val block = FelicaProtocol.parseReadResponse(nfcF.transceive(command), idm)
             success(
                 tag = tag,
-                profile = TransitCardProfile.JAPAN_IC,
-                detectedName = "Japanese IC card (Suica / PASMO / ICOCA family)",
+                profile = profile,
+                detectedName = profile.displayName,
                 protocol = "FeliCa service 090F",
                 balance = TransitBalance(
                     currencyCode = "JPY",
@@ -117,7 +120,7 @@ object TransitCardReader {
                 ),
                 systemCode = systemCode.toUpperHex(),
                 rawData = block,
-                note = "These interoperable cards share a common NFC system; the exact brand is not always distinguishable.",
+                note = "Read using the selected ${profile.displayName} profile. These interoperable cards share a common NFC system, so the card itself may not confirm the exact brand.",
             )
         } catch (error: FelicaProtocolException) {
             CardReadResult.Failure(error.message ?: "The Japanese IC response could not be decoded.")
