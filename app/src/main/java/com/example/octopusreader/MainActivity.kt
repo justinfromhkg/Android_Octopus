@@ -65,11 +65,11 @@ class MainActivity : ComponentActivity(), NfcAdapter.ReaderCallback {
     }
 
     override fun onTagDiscovered(tag: Tag) {
-        val selectedProfile = viewModel.beginRead() ?: return
+        val readRequest = viewModel.beginRead() ?: return
 
         lifecycleScope.launch {
             val result = withContext(Dispatchers.IO) {
-                TransitCardReader.read(tag, selectedProfile)
+                TransitCardReader.read(tag, readRequest)
             }
             viewModel.completeRead(result)
         }

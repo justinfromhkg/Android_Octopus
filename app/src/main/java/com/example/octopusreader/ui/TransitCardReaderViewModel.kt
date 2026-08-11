@@ -2,14 +2,17 @@ package com.example.octopusreader.ui
 
 import androidx.lifecycle.ViewModel
 import com.example.octopusreader.nfc.CardReadResult
+import com.example.octopusreader.nfc.OctopusBalanceBasis
 import com.example.octopusreader.nfc.TransitCardProfile
 import com.example.octopusreader.nfc.TransitCardScan
+import com.example.octopusreader.nfc.TransitReadRequest
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 data class TransitCardReaderUiState(
     val selectedProfile: TransitCardProfile? = null,
+    val octopusBalanceBasis: OctopusBalanceBasis = OctopusBalanceBasis.PHYSICAL_PRE_2017,
     val nfcSupported: Boolean = true,
     val nfcEnabled: Boolean = true,
     val isWaitingForCard: Boolean = false,
@@ -42,6 +45,15 @@ class TransitCardReaderViewModel : ViewModel() {
             selectedProfile = profile,
             isWaitingForCard = false,
             status = ReaderStatus.CARD_SELECTED,
+            lastScan = null,
+        )
+    }
+
+    fun selectOctopusBalanceBasis(basis: OctopusBalanceBasis) {
+        val previous = _uiState.value
+        if (previous.isReading || previous.isWaitingForCard) return
+        _uiState.value = previous.copy(
+            octopusBalanceBasis = basis,
             lastScan = null,
         )
     }
@@ -82,7 +94,7 @@ class TransitCardReaderViewModel : ViewModel() {
     }
 
     @Synchronized
-    fun beginRead(): TransitCardProfile? {
+    fun beginRead(): TransitReadRequest? {
         val previous = _uiState.value
         if (!previous.isWaitingForCard || previous.isReading) return null
         val profile = previous.selectedProfile ?: return null
@@ -92,7 +104,10 @@ class TransitCardReaderViewModel : ViewModel() {
             isReading = true,
             status = ReaderStatus.READING,
         )
-        return profile
+        return TransitReadRequest(
+            profile = profile,
+            octopusBalanceBasis = previous.octopusBalanceBasis,
+        )
     }
 
     fun completeRead(result: CardReadResult) {

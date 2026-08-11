@@ -10,14 +10,14 @@ Source repository: [justinfromhkg/Android_Octopus](https://github.com/justinfrom
 
 | Card profile | What this version can read | Important limitation |
 | --- | --- | --- |
-| Octopus (Hong Kong) | NFC identifier and community-decoded balance estimate | The estimate is unofficial; verify important amounts with an official reader |
+| Octopus (Hong Kong) | NFC identifier, FeliCa details, and community-decoded balance estimate with a selectable HK$35/HK$50 card-generation basis | The card does not publicly identify the correct balance offset; select the matching issuance type and verify important amounts with an official reader |
 | EasyCard (Taiwan) | NFC identifier and technology metadata | Balance sectors require issuer MIFARE Classic keys |
 | iPASS (Taiwan) | NFC identifier and technology metadata | Stored-value data varies by generation and is not decoded here |
 | EZ-Link / CEPAS (Singapore) | Card number and balance on compatible legacy CEPAS cards | SimplyGo/account-based cards may not keep a readable local balance |
 | Suica / PASMO / ICOCA (Japan) | NFC identifier and latest stored balance | These interoperable cards share system code `0003`; the exact brand is not always distinguishable |
 | Yangchengtong (Guangdong) | Balance on compatible CPU/City Union/T-Union cards; identifier fallback | Older MIFARE variants may require keys |
 | Shenzhentong (Guangdong) | Balance on compatible CPU/T-Union cards; identifier fallback | Older MIFARE variants may require keys |
-| China T-Union | Positive or debt-adjusted balance from compatible public PBOC/T-Union purses | Issuer and card-generation behavior can vary |
+| China T-Union | Positive or debt-adjusted balance, card number, validity, and up to 10 public transaction records | Route/station records contain issuer-specific numeric codes rather than a reliable nationwide name list |
 | Clipper (San Francisco Bay Area) | Balance from the public application on compatible classic DESFire cards | Newer account-based products may use a different layout |
 | Macau Pass | NFC identifier and technology metadata | Protected stored-value data is not decoded |
 | Touch 'n Go (Malaysia) | NFC identifier and technology metadata | Balance sectors require issuer MIFARE Classic keys |
@@ -33,8 +33,11 @@ card does not expose one publicly.
 3. In the required **Select your card** section, choose the exact card profile.
    This tells the app which read-only protocol to use when a card or phone
    supports several NFC technologies.
-4. Tap **Scan**.
-5. Hold the physical card still against the phone's NFC antenna until the
+4. For Octopus, choose the matching card generation: **HK$35** for an On-Loan
+   physical Octopus issued before 1 October 2017, or **HK$50** for a newer
+   physical or mobile Octopus. The older physical-card choice is the default.
+5. Tap **Scan**.
+6. Hold the physical card still against the phone's NFC antenna until the
    result appears. Antenna position varies by phone.
 
 Android emulators cannot scan a physical transit card. This app reads physical
@@ -55,9 +58,47 @@ All user-interface labels, scan instructions, status messages, balance labels,
 regions, and balance-availability explanations are localized. Technical NFC
 protocol names and raw card data remain in their standard form.
 
+## Octopus balance correction
+
+Version 0.4.0 removes the single hard-coded Octopus offset. Octopus Cards
+Limited documents a HK$35 convenience limit for On-Loan cards issued before
+1 October 2017 and HK$50 for newer On-Loan and mobile Octopus. That limit is
+also the offset used by the public community-decoded balance record, and the
+card does not expose a dependable public generation flag.
+
+The Octopus selector therefore asks which generation is being scanned. The
+result also displays the selected basis, raw HK$0.10 units, FeliCa PMm,
+system code, IDm, and raw balance block so a reading can be checked without
+hiding the conversion. Important balances should still be verified with an
+official Octopus reader.
+
+## T-Union card and transaction details
+
+On compatible China T-Union CPU cards, version 0.4.0 reads only public,
+read-only PBOC data:
+
+- positive and debt purses;
+- card number, application version, issuer code, and validity dates from
+  public SFI 21 when available; and
+- up to ten 23-byte transaction records from public SFI 24, including time,
+  amount, top-up/fare type, sequence, overdraft, and terminal identifiers.
+
+Common Shenzhen-style records can identify bus and metro/rail modes. For a
+bus event the app shows the stored bus/route code. For metro/rail it shows the
+stored exit-station and gate codes and explicitly marks the boarding station
+as unavailable when the record does not contain it.
+
+T-Union interoperability does not mean all local operators use one public
+nationwide route/station-name table. The card history stores compact issuer-
+specific numeric identifiers, and generic records normally do not contain
+both a boarding and alighting station name. This app preserves those raw codes
+instead of presenting an unverified bus number or station name. A future
+release can add issuer-specific names when a redistributable, authoritative
+mapping is available.
+
 ## Balance availability
 
-Version 0.3.0 corrects Chinese transit balances to use the card format's signed
+Version 0.3.0 corrected Chinese transit balances to use the card format's signed
 31-bit value. For compatible T-Union cards, it also reads both public purse 0
 and public debt purse 1 and combines them according to the documented parser.
 
@@ -142,10 +183,14 @@ not break.
 - [Android advanced NFC guide](https://developer.android.com/develop/connectivity/nfc/advanced-nfc)
 - [Android `IsoDep` API](https://developer.android.com/reference/android/nfc/tech/IsoDep)
 - [Android `NfcF` API](https://developer.android.com/reference/android/nfc/tech/NfcF)
+- [Official Octopus convenience-limit guidance](https://www.octopus.com.hk/en/consumer/customer-service/faq/get-your-octopus/about-octopus.html)
+- [Metrodroid Octopus offset history](https://github.com/metrodroid/metrodroid/blob/04a603ba639f7a270b7bdbf24158c7d601087c29/src/commonMain/kotlin/au/id/micolous/metrodroid/transit/octopus/OctopusData.kt)
 - [Metrodroid Suica-family constants](https://github.com/metrodroid/metrodroid/blob/04a603ba639f7a270b7bdbf24158c7d601087c29/src/commonMain/kotlin/au/id/micolous/metrodroid/transit/suica/SuicaConsts.kt)
 - [Metrodroid CEPAS protocol](https://github.com/metrodroid/metrodroid/blob/04a603ba639f7a270b7bdbf24158c7d601087c29/src/commonMain/kotlin/au/id/micolous/metrodroid/card/cepas/CEPASProtocol.kt)
 - [Metrodroid China transit-card protocol](https://github.com/metrodroid/metrodroid/blob/04a603ba639f7a270b7bdbf24158c7d601087c29/src/commonMain/kotlin/au/id/micolous/metrodroid/card/china/ChinaCard.kt)
 - [Metrodroid T-Union balance parser](https://github.com/metrodroid/metrodroid/blob/04a603ba639f7a270b7bdbf24158c7d601087c29/src/commonMain/kotlin/au/id/micolous/metrodroid/transit/china/TUnionTransitData.kt)
+- [Metrodroid China transaction record parser](https://github.com/metrodroid/metrodroid/blob/04a603ba639f7a270b7bdbf24158c7d601087c29/src/commonMain/kotlin/au/id/micolous/metrodroid/transit/china/ChinaTrip.kt)
+- [NFCard T-Union public-file reader](https://github.com/sinpolib/nfcard/blob/master/src/com/sinpo/xnfc/nfc/reader/pboc/TUnion.java)
 - [Metrodroid EasyCard parser](https://github.com/metrodroid/metrodroid/blob/04a603ba639f7a270b7bdbf24158c7d601087c29/src/commonMain/kotlin/au/id/micolous/metrodroid/transit/easycard/EasyCardTransitData.kt)
 - [Metrodroid Touch 'n Go parser](https://github.com/metrodroid/metrodroid/blob/04a603ba639f7a270b7bdbf24158c7d601087c29/src/commonMain/kotlin/au/id/micolous/metrodroid/transit/touchngo/TouchnGoTransitData.kt)
 - [Metrodroid Clipper parser](https://github.com/metrodroid/metrodroid/blob/04a603ba639f7a270b7bdbf24158c7d601087c29/src/commonMain/kotlin/au/id/micolous/metrodroid/transit/clipper/ClipperTransitData.kt)

@@ -70,7 +70,11 @@ class OctopusProtocolTest {
             0x00,
         )
 
-        val data = OctopusProtocol.parseBalanceReadResponse(response, idm)
+        val data = OctopusProtocol.parseBalanceReadResponse(
+            response,
+            idm,
+            OctopusBalanceBasis.NEW_OR_MOBILE,
+        )
 
         assertEquals(1_734L, data.rawBalance)
         assertEquals(123.4, data.estimatedBalanceHkd, 0.001)
@@ -88,6 +92,45 @@ class OctopusProtocolTest {
             *ByteArray(16),
         )
 
-        OctopusProtocol.parseBalanceReadResponse(response, idm)
+        OctopusProtocol.parseBalanceReadResponse(
+            response,
+            idm,
+            OctopusBalanceBasis.NEW_OR_MOBILE,
+        )
+    }
+
+    @Test
+    fun `older physical cards use the 35 dollar convenience limit offset`() {
+        assertEquals(
+            138.4,
+            OctopusProtocol.decodeEstimatedBalance(
+                rawBalance = 1_734,
+                balanceBasis = OctopusBalanceBasis.PHYSICAL_PRE_2017,
+            ),
+            0.001,
+        )
+    }
+
+    @Test(expected = OctopusProtocolException::class)
+    fun `unrelated out of range balance data is rejected`() {
+        val response = byteArrayOf(
+            0x1D,
+            0x07,
+            *idm,
+            0x00,
+            0x00,
+            0x01,
+            0x00,
+            0x01,
+            0x86.toByte(),
+            0xA1.toByte(),
+            *ByteArray(12),
+        )
+
+        OctopusProtocol.parseBalanceReadResponse(
+            response,
+            idm,
+            OctopusBalanceBasis.PHYSICAL_PRE_2017,
+        )
     }
 }
