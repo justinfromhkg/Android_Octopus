@@ -2,7 +2,6 @@
 <resources>
     <string name="app_name">다중 교통카드 리더</string>
     <string name="app_language">앱 언어</string>
-    <string name="app_language_description">이 앱의 언어만 변경합니다. 휴대전화 언어는 바뀌지 않습니다.</string>
     <string name="language_english">English</string>
     <string name="language_traditional_chinese">繁體中文</string>
     <string name="language_simplified_chinese">简体中文</string>
@@ -17,7 +16,6 @@
     <string name="choose_card">교통카드 선택</string>
     <string name="no_card_selected">선택된 카드 없음</string>
     <string name="octopus_card_type">옥토퍼스 유형</string>
-    <string name="octopus_card_type_help">공개 잔액 레코드는 카드의 마이너스 사용 한도 오프셋을 사용합니다. 판매형 옥토퍼스는 -HK$35, 대여형 또는 전자 옥토퍼스는 -HK$50을 선택하세요.</string>
     <string name="octopus_basis_sold">판매형 옥토퍼스 · -HK$35 한도</string>
     <string name="octopus_basis_on_loan_or_electronic">대여형/전자 옥토퍼스 · -HK$50 한도</string>
     <string name="card_name_format">%1$s · %2$s</string>

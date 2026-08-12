@@ -2,7 +2,6 @@
 <resources>
     <string name="app_name">多卡交通卡讀卡器</string>
     <string name="app_language">應用程式語言</string>
-    <string name="app_language_description">只會變更此應用程式的語言，不會變更手機語言。</string>
     <string name="language_english">English</string>
     <string name="language_traditional_chinese">繁體中文</string>
     <string name="language_simplified_chinese">简体中文</string>
@@ -17,7 +16,6 @@
     <string name="choose_card">選擇交通卡</string>
     <string name="no_card_selected">尚未選擇卡片</string>
     <string name="octopus_card_type">八達通類型</string>
-    <string name="octopus_card_type_help">公開餘額紀錄會使用卡片的負值限額偏移值。已售八達通請選 -HK$35；租用或電子八達通請選 -HK$50。</string>
     <string name="octopus_basis_sold">已售八達通 · -HK$35 限額</string>
     <string name="octopus_basis_on_loan_or_electronic">租用／電子八達通 · -HK$50 限額</string>
     <string name="card_name_format">%1$s · %2$s</string>
