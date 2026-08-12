@@ -186,12 +186,6 @@ private fun LanguageSelector(
                 fontWeight = FontWeight.Bold,
                 fontSize = 18.sp,
             )
-            Text(
-                text = stringResource(R.string.app_language_description),
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                fontSize = 13.sp,
-                lineHeight = 18.sp,
-            )
             Box(modifier = Modifier.fillMaxWidth()) {
                 OutlinedButton(
                     onClick = { expanded = true },
@@ -380,12 +374,6 @@ private fun OctopusBalanceBasisSelector(
     Text(
         text = stringResource(R.string.octopus_card_type),
         fontWeight = FontWeight.SemiBold,
-    )
-    Text(
-        text = stringResource(R.string.octopus_card_type_help),
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        fontSize = 12.sp,
-        lineHeight = 17.sp,
     )
     Box(modifier = Modifier.fillMaxWidth()) {
         OutlinedButton(

@@ -2,7 +2,6 @@
 <resources>
     <string name="app_name">Pembaca Kad Transit Pelbagai</string>
     <string name="app_language">Bahasa aplikasi</string>
-    <string name="app_language_description">Menukar bahasa aplikasi ini sahaja. Bahasa telefon anda tidak berubah.</string>
     <string name="language_english">English</string>
     <string name="language_traditional_chinese">繁體中文</string>
     <string name="language_simplified_chinese">简体中文</string>
@@ -17,7 +16,6 @@
     <string name="choose_card">Pilih kad transit</string>
     <string name="no_card_selected">Tiada kad dipilih</string>
     <string name="octopus_card_type">Jenis Octopus</string>
-    <string name="octopus_card_type_help">Rekod baki awam menggunakan ofset had nilai negatif kad. Pilih -HK$35 untuk Octopus yang dijual; pilih -HK$50 untuk Octopus pinjaman atau elektronik.</string>
     <string name="octopus_basis_sold">Octopus yang dijual · had -HK$35</string>
     <string name="octopus_basis_on_loan_or_electronic">Octopus pinjaman/elektronik · had -HK$50</string>
     <string name="card_name_format">%1$s · %2$s</string>
