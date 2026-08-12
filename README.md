@@ -11,7 +11,7 @@ Source repository: [justinfromhkg/Android_Octopus](https://github.com/justinfrom
 | Card profile | What this version can read | Important limitation |
 | --- | --- | --- |
 | Automatic detection | Probes every compatible public read-only application and displays each detected result separately | Protected MIFARE cards cannot always identify their issuer without secret keys; use a manual profile when needed |
-| Octopus (Hong Kong) | NFC identifier, FeliCa details, and community-decoded balance estimate with a selectable HK$35/HK$50 card-generation basis; explicitly selects system `8008` on Octopus + Shenzhen/T-Union multi-system cards | The card does not publicly identify the correct balance offset; select the matching issuance type and verify important amounts with an official reader |
+| Octopus (Hong Kong) | NFC identifier, FeliCa details, and community-decoded balance estimate with a selectable Sold (-HK$35) or On-Loan/electronic (-HK$50) basis; explicitly selects system `8008` on Octopus + Shenzhen/T-Union multi-system cards | The card does not publicly identify the correct balance offset; select the matching Octopus type and verify important amounts with an official reader |
 | EasyCard (Taiwan) | NFC identifier and technology metadata | Balance sectors require issuer MIFARE Classic keys |
 | iPASS (Taiwan) | NFC identifier and technology metadata | Stored-value data varies by generation and is not decoded here |
 | EZ-Link / CEPAS (Singapore) | Card number and balance on compatible legacy CEPAS cards | SimplyGo/account-based cards may not keep a readable local balance |
@@ -38,9 +38,8 @@ card does not expose one publicly.
    core. Choose a manual profile only for a protected or ambiguous card that
    cannot identify itself publicly.
 4. If an Octopus card may be detected, choose its matching balance basis:
-   **HK$35** for an On-Loan
-   physical Octopus issued before 1 October 2017, or **HK$50** for a newer
-   physical or mobile Octopus. The older physical-card choice is the default.
+   **-HK$35** for a Sold Octopus, or **-HK$50** for an On-Loan or electronic
+   Octopus. Sold Octopus is the default.
 5. Tap **Scan**.
 6. Hold the physical card still against the phone's NFC antenna until the
    result appears. Antenna position varies by phone.
@@ -55,11 +54,10 @@ where one exists, for example `EasyCard · 悠遊卡`, `Octopus · 八達通`, a
 ## Application languages
 
 English remains the default/source interface. The app also includes
-Traditional Chinese, Simplified Chinese, Japanese, Korean, and Malay. Android
-13 and newer can change the language for this app independently from the
-in-app **App language** button or under **Settings > Apps > Multi Transit Card
-Reader > Language**. On older Android versions, the same button opens the
-device language settings and the app follows the phone language.
+Traditional Chinese, Simplified Chinese, Japanese, Korean, and Malay. Version
+0.6.1 replaces the system-settings shortcut with an in-app **App language**
+chooser. The selected language is stored for this application on every
+supported Android version and does not change the phone's global language.
 
 All user-interface labels, scan instructions, status messages, balance labels,
 regions, and balance-availability explanations are localized. Technical NFC
@@ -82,13 +80,12 @@ and can still be opened with the manual profile selected by the user.
 
 ## Octopus physical-card balance and multi-system cards
 
-Version 0.4.0 removed the single hard-coded Octopus offset. Octopus Cards
-Limited documents a HK$35 convenience limit for On-Loan cards issued before
-1 October 2017 and HK$50 for newer On-Loan and mobile Octopus. That limit is
-also the offset used by the public community-decoded balance record, and the
-card does not expose a dependable public generation flag.
+Version 0.4.0 removed the single hard-coded Octopus offset. Version 0.6.1
+labels the two community-decoded balance bases by product type: -HK$35 for a
+Sold Octopus and -HK$50 for an On-Loan or electronic Octopus. The card does
+not expose a dependable public flag that identifies the correct offset.
 
-The Octopus selector therefore asks which generation is being scanned. The
+The Octopus selector therefore asks which type is being scanned. The
 result also displays the selected basis, raw HK$0.10 units, FeliCa PMm,
 system code, IDm, and raw balance block so a reading can be checked without
 hiding the conversion. Important balances should still be verified with an
@@ -234,6 +231,7 @@ not break.
 - [Android `IsoDep` API](https://developer.android.com/reference/android/nfc/tech/IsoDep)
 - [Android `NfcF` API](https://developer.android.com/reference/android/nfc/tech/NfcF)
 - [Android `MifareClassic` API](https://developer.android.com/reference/android/nfc/tech/MifareClassic)
+- [Android per-app language preferences](https://developer.android.com/guide/topics/resources/app-languages)
 - [JR East nationwide interoperable IC-card list](https://www.jreast.co.jp/suica/ic/use/equip/)
 - [PiTaPa post-pay and stored-value behavior](https://www.pitapa.com/faq?id=faq08)
 - [Sony FeliCa Polling and system-code behavior](https://www.sony.net/Products/felica/business/tech-support/data/M633_NFC_Dynamic_Tag_Users_manual_1.14e.pdf)

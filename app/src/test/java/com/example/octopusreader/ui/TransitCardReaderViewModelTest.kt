@@ -35,18 +35,18 @@ class TransitCardReaderViewModelTest {
     }
 
     @Test
-    fun `older physical Octopus balance basis is the default and can be changed`() {
+    fun `sold Octopus balance basis is the default and can be changed`() {
         val viewModel = TransitCardReaderViewModel()
 
         assertEquals(
-            OctopusBalanceBasis.PHYSICAL_PRE_2017,
+            OctopusBalanceBasis.SOLD,
             viewModel.uiState.value.octopusBalanceBasis,
         )
 
-        viewModel.selectOctopusBalanceBasis(OctopusBalanceBasis.NEW_OR_MOBILE)
+        viewModel.selectOctopusBalanceBasis(OctopusBalanceBasis.ON_LOAN_OR_ELECTRONIC)
 
         assertEquals(
-            OctopusBalanceBasis.NEW_OR_MOBILE,
+            OctopusBalanceBasis.ON_LOAN_OR_ELECTRONIC,
             viewModel.uiState.value.octopusBalanceBasis,
         )
     }

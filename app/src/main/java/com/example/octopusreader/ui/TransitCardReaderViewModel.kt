@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.asStateFlow
 
 data class TransitCardReaderUiState(
     val selectedProfile: TransitCardProfile? = TransitCardProfile.AUTOMATIC,
-    val octopusBalanceBasis: OctopusBalanceBasis = OctopusBalanceBasis.PHYSICAL_PRE_2017,
+    val octopusBalanceBasis: OctopusBalanceBasis = OctopusBalanceBasis.SOLD,
     val nfcSupported: Boolean = true,
     val nfcEnabled: Boolean = true,
     val isWaitingForCard: Boolean = false,

@@ -125,13 +125,13 @@ enum class BalanceReadSupport {
 }
 
 enum class OctopusBalanceBasis(val rawOffsetTenths: Long) {
-    PHYSICAL_PRE_2017(rawOffsetTenths = 350L),
-    NEW_OR_MOBILE(rawOffsetTenths = 500L),
+    SOLD(rawOffsetTenths = 350L),
+    ON_LOAN_OR_ELECTRONIC(rawOffsetTenths = 500L),
 }
 
 data class TransitReadRequest(
     val profile: TransitCardProfile,
-    val octopusBalanceBasis: OctopusBalanceBasis = OctopusBalanceBasis.PHYSICAL_PRE_2017,
+    val octopusBalanceBasis: OctopusBalanceBasis = OctopusBalanceBasis.SOLD,
 )
 
 data class TransitBalance(
