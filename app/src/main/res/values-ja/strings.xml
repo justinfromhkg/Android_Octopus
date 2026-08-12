@@ -2,6 +2,13 @@
 <resources>
     <string name="app_name">マルチ交通系ICカードリーダー</string>
     <string name="app_language">アプリの言語</string>
+    <string name="app_language_description">このアプリだけの言語を変更します。スマートフォンの言語は変わりません。</string>
+    <string name="language_english">English</string>
+    <string name="language_traditional_chinese">繁體中文</string>
+    <string name="language_simplified_chinese">简体中文</string>
+    <string name="language_japanese">日本語</string>
+    <string name="language_korean">한국어</string>
+    <string name="language_malay">Bahasa Melayu</string>
     <string name="hero_title">1台のスマートフォンで、さまざまな交通系ICカードを。</string>
     <string name="hero_subtitle">対応する実物カードを、データを送信せずに読み取ります。</string>
     <string name="select_card_title">カードを選択</string>
@@ -9,10 +16,10 @@
     <string name="automatic_detection">自動識別</string>
     <string name="choose_card">交通系ICカードを選択</string>
     <string name="no_card_selected">カードが選択されていません</string>
-    <string name="octopus_card_generation">Octopusカードの世代</string>
-    <string name="octopus_card_generation_help">公開残高レコードはカードのマイナス利用限度額によるオフセットを使用します。2017年10月1日より前に発行された実物の貸与型OctopusはHK$35、新しい実物カードまたはモバイルOctopusはHK$50を選択してください。</string>
-    <string name="octopus_basis_legacy_physical">旧式の実物カード · HK$35上限</string>
-    <string name="octopus_basis_new_or_mobile">新しい実物／モバイル · HK$50上限</string>
+    <string name="octopus_card_type">Octopusの種類</string>
+    <string name="octopus_card_type_help">公開残高レコードはカードのマイナス利用限度額によるオフセットを使用します。買取型Octopusは-HK$35、貸与型または電子Octopusは-HK$50を選択してください。</string>
+    <string name="octopus_basis_sold">買取型Octopus · -HK$35上限</string>
+    <string name="octopus_basis_on_loan_or_electronic">貸与型／電子Octopus · -HK$50上限</string>
     <string name="card_name_format">%1$s · %2$s</string>
     <string name="card_selection_format">%1$s — %2$s</string>
     <string name="how_to_scan">スキャン方法</string>

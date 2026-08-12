@@ -2,6 +2,13 @@
 <resources>
     <string name="app_name">多卡交通卡读卡器</string>
     <string name="app_language">应用语言</string>
+    <string name="app_language_description">只会更改此应用的语言，不会更改手机语言。</string>
+    <string name="language_english">English</string>
+    <string name="language_traditional_chinese">繁體中文</string>
+    <string name="language_simplified_chinese">简体中文</string>
+    <string name="language_japanese">日本語</string>
+    <string name="language_korean">한국어</string>
+    <string name="language_malay">Bahasa Melayu</string>
     <string name="hero_title">一部手机，多张交通卡。</string>
     <string name="hero_subtitle">无需上传数据，即可读取支持的实体卡。</string>
     <string name="select_card_title">选择交通卡</string>
@@ -9,10 +16,10 @@
     <string name="automatic_detection">自动识别</string>
     <string name="choose_card">选择交通卡</string>
     <string name="no_card_selected">尚未选择卡片</string>
-    <string name="octopus_card_generation">八达通卡片年代</string>
-    <string name="octopus_card_generation_help">公开余额记录会使用卡片的备用余额上限偏移值。2017 年 10 月 1 日前发行的实体租用版八达通请选择 HK$35；较新的实体卡或移动八达通请选择 HK$50。</string>
-    <string name="octopus_basis_legacy_physical">较旧实体卡 · HK$35 上限</string>
-    <string name="octopus_basis_new_or_mobile">较新实体／移动卡 · HK$50 上限</string>
+    <string name="octopus_card_type">八达通类型</string>
+    <string name="octopus_card_type_help">公开余额记录会使用卡片的负值限额偏移值。已售八达通请选择 -HK$35；租用或电子八达通请选择 -HK$50。</string>
+    <string name="octopus_basis_sold">已售八达通 · -HK$35 限额</string>
+    <string name="octopus_basis_on_loan_or_electronic">租用／电子八达通 · -HK$50 限额</string>
     <string name="card_name_format">%1$s · %2$s</string>
     <string name="card_selection_format">%1$s — %2$s</string>
     <string name="how_to_scan">如何扫描</string>

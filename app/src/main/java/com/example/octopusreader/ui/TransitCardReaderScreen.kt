@@ -66,7 +66,8 @@ import java.util.Locale
 @Composable
 fun TransitCardReaderScreen(
     viewModel: TransitCardReaderViewModel,
-    onOpenLanguageSettings: () -> Unit,
+    currentLanguageTag: String,
+    onSelectLanguage: (String) -> Unit,
     onOpenNfcSettings: () -> Unit,
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -101,12 +102,10 @@ fun TransitCardReaderScreen(
                 onSelect = viewModel::selectProfile,
                 onSelectOctopusBalanceBasis = viewModel::selectOctopusBalanceBasis,
             )
-            TextButton(
-                onClick = onOpenLanguageSettings,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text(stringResource(R.string.app_language))
-            }
+            LanguageSelector(
+                currentLanguageTag = currentLanguageTag,
+                onSelectLanguage = onSelectLanguage,
+            )
             InstructionCard()
             StatusCard(state)
 
@@ -160,6 +159,61 @@ fun TransitCardReaderScreen(
                     .fillMaxWidth()
                     .padding(bottom = 20.dp),
             )
+        }
+    }
+}
+
+@Composable
+private fun LanguageSelector(
+    currentLanguageTag: String,
+    onSelectLanguage: (String) -> Unit,
+) {
+    var expanded by remember { mutableStateOf(false) }
+    val selectedLanguage = AppLanguage.fromLanguageTag(currentLanguageTag)
+
+    Card(
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        shape = RoundedCornerShape(20.dp),
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Column(
+            modifier = Modifier.padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Text(
+                text = stringResource(R.string.app_language),
+                fontWeight = FontWeight.Bold,
+                fontSize = 18.sp,
+            )
+            Text(
+                text = stringResource(R.string.app_language_description),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                fontSize = 13.sp,
+                lineHeight = 18.sp,
+            )
+            Box(modifier = Modifier.fillMaxWidth()) {
+                OutlinedButton(
+                    onClick = { expanded = true },
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(localizedLanguageName(selectedLanguage))
+                }
+                DropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false },
+                ) {
+                    AppLanguage.entries.forEach { language ->
+                        DropdownMenuItem(
+                            text = { Text(localizedLanguageName(language)) },
+                            onClick = {
+                                expanded = false
+                                onSelectLanguage(language.languageTag)
+                            },
+                        )
+                    }
+                }
+            }
         }
     }
 }
@@ -324,11 +378,11 @@ private fun OctopusBalanceBasisSelector(
 
     HorizontalDivider()
     Text(
-        text = stringResource(R.string.octopus_card_generation),
+        text = stringResource(R.string.octopus_card_type),
         fontWeight = FontWeight.SemiBold,
     )
     Text(
-        text = stringResource(R.string.octopus_card_generation_help),
+        text = stringResource(R.string.octopus_card_type_help),
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         fontSize = 12.sp,
         lineHeight = 17.sp,
@@ -693,8 +747,20 @@ private fun formatBalance(balance: TransitBalance): String {
 @Composable
 private fun localizedOctopusBalanceBasis(basis: OctopusBalanceBasis): String = stringResource(
     when (basis) {
-        OctopusBalanceBasis.PHYSICAL_PRE_2017 -> R.string.octopus_basis_legacy_physical
-        OctopusBalanceBasis.NEW_OR_MOBILE -> R.string.octopus_basis_new_or_mobile
+        OctopusBalanceBasis.SOLD -> R.string.octopus_basis_sold
+        OctopusBalanceBasis.ON_LOAN_OR_ELECTRONIC -> R.string.octopus_basis_on_loan_or_electronic
+    },
+)
+
+@Composable
+private fun localizedLanguageName(language: AppLanguage): String = stringResource(
+    when (language) {
+        AppLanguage.ENGLISH -> R.string.language_english
+        AppLanguage.TRADITIONAL_CHINESE -> R.string.language_traditional_chinese
+        AppLanguage.SIMPLIFIED_CHINESE -> R.string.language_simplified_chinese
+        AppLanguage.JAPANESE -> R.string.language_japanese
+        AppLanguage.KOREAN -> R.string.language_korean
+        AppLanguage.MALAY -> R.string.language_malay
     },
 )
 

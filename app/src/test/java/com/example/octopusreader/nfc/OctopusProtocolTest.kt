@@ -125,7 +125,7 @@ class OctopusProtocolTest {
         val data = OctopusProtocol.parseBalanceReadResponse(
             response,
             idm,
-            OctopusBalanceBasis.NEW_OR_MOBILE,
+            OctopusBalanceBasis.ON_LOAN_OR_ELECTRONIC,
         )
 
         assertEquals(1_734L, data.rawBalance)
@@ -147,17 +147,17 @@ class OctopusProtocolTest {
         OctopusProtocol.parseBalanceReadResponse(
             response,
             idm,
-            OctopusBalanceBasis.NEW_OR_MOBILE,
+            OctopusBalanceBasis.ON_LOAN_OR_ELECTRONIC,
         )
     }
 
     @Test
-    fun `older physical cards use the 35 dollar convenience limit offset`() {
+    fun `sold cards use the 35 dollar convenience limit offset`() {
         assertEquals(
             138.4,
             OctopusProtocol.decodeEstimatedBalance(
                 rawBalance = 1_734,
-                balanceBasis = OctopusBalanceBasis.PHYSICAL_PRE_2017,
+                balanceBasis = OctopusBalanceBasis.SOLD,
             ),
             0.001,
         )
@@ -182,7 +182,7 @@ class OctopusProtocolTest {
         OctopusProtocol.parseBalanceReadResponse(
             response,
             idm,
-            OctopusBalanceBasis.PHYSICAL_PRE_2017,
+            OctopusBalanceBasis.SOLD,
         )
     }
 }

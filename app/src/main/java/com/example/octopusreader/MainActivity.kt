@@ -1,18 +1,19 @@
 package com.example.octopusreader
 
 import android.content.Intent
-import android.net.Uri
 import android.nfc.NfcAdapter
 import android.nfc.NfcManager
 import android.nfc.Tag
 import android.os.Bundle
-import android.os.Build
 import android.provider.Settings
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.lifecycleScope
 import com.example.octopusreader.nfc.TransitCardReader
+import com.example.octopusreader.ui.AppLanguage
 import com.example.octopusreader.ui.TransitCardReaderScreen
 import com.example.octopusreader.ui.TransitCardReaderViewModel
 import com.example.octopusreader.ui.theme.MultiTransitCardReaderTheme
@@ -20,19 +21,28 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class MainActivity : ComponentActivity(), NfcAdapter.ReaderCallback {
+class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
     private val viewModel: TransitCardReaderViewModel by viewModels()
     private var nfcAdapter: NfcAdapter? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        if (AppCompatDelegate.getApplicationLocales().isEmpty) {
+            AppCompatDelegate.setApplicationLocales(
+                LocaleListCompat.forLanguageTags(AppLanguage.ENGLISH.languageTag),
+            )
+        }
         nfcAdapter = getSystemService(NfcManager::class.java)?.defaultAdapter
 
         setContent {
             MultiTransitCardReaderTheme {
                 TransitCardReaderScreen(
                     viewModel = viewModel,
-                    onOpenLanguageSettings = ::openLanguageSettings,
+                    currentLanguageTag = AppCompatDelegate.getApplicationLocales()
+                        .get(0)
+                        ?.toLanguageTag()
+                        ?: AppLanguage.ENGLISH.languageTag,
+                    onSelectLanguage = ::selectLanguage,
                     onOpenNfcSettings = {
                         startActivity(Intent(Settings.ACTION_NFC_SETTINGS))
                     },
@@ -41,15 +51,15 @@ class MainActivity : ComponentActivity(), NfcAdapter.ReaderCallback {
         }
     }
 
-    private fun openLanguageSettings() {
-        val intent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            Intent(Settings.ACTION_APP_LOCALE_SETTINGS).apply {
-                data = Uri.parse("package:$packageName")
-            }
-        } else {
-            Intent(Settings.ACTION_LOCALE_SETTINGS)
+    private fun selectLanguage(languageTag: String) {
+        val currentTag = AppCompatDelegate.getApplicationLocales()
+            .get(0)
+            ?.toLanguageTag()
+        if (currentTag != languageTag) {
+            AppCompatDelegate.setApplicationLocales(
+                LocaleListCompat.forLanguageTags(languageTag),
+            )
         }
-        startActivity(intent)
     }
 
     override fun onResume() {

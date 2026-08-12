@@ -2,6 +2,13 @@
 <resources>
     <string name="app_name">Pembaca Kad Transit Pelbagai</string>
     <string name="app_language">Bahasa aplikasi</string>
+    <string name="app_language_description">Menukar bahasa aplikasi ini sahaja. Bahasa telefon anda tidak berubah.</string>
+    <string name="language_english">English</string>
+    <string name="language_traditional_chinese">繁體中文</string>
+    <string name="language_simplified_chinese">简体中文</string>
+    <string name="language_japanese">日本語</string>
+    <string name="language_korean">한국어</string>
+    <string name="language_malay">Bahasa Melayu</string>
     <string name="hero_title">Satu telefon. Pelbagai kad transit.</string>
     <string name="hero_subtitle">Baca kad fizikal yang disokong tanpa menghantar data ke mana-mana.</string>
     <string name="select_card_title">Pilih kad anda</string>
@@ -9,10 +16,10 @@
     <string name="automatic_detection">Pengesanan automatik</string>
     <string name="choose_card">Pilih kad transit</string>
     <string name="no_card_selected">Tiada kad dipilih</string>
-    <string name="octopus_card_generation">Generasi kad Octopus</string>
-    <string name="octopus_card_generation_help">Rekod baki awam menggunakan ofset had baki negatif kad. Pilih HK$35 untuk Octopus fizikal jenis pinjaman yang dikeluarkan sebelum 1 Oktober 2017; pilih HK$50 untuk Octopus fizikal lebih baharu atau mudah alih.</string>
-    <string name="octopus_basis_legacy_physical">Kad fizikal lama · had HK$35</string>
-    <string name="octopus_basis_new_or_mobile">Fizikal baharu/mudah alih · had HK$50</string>
+    <string name="octopus_card_type">Jenis Octopus</string>
+    <string name="octopus_card_type_help">Rekod baki awam menggunakan ofset had nilai negatif kad. Pilih -HK$35 untuk Octopus yang dijual; pilih -HK$50 untuk Octopus pinjaman atau elektronik.</string>
+    <string name="octopus_basis_sold">Octopus yang dijual · had -HK$35</string>
+    <string name="octopus_basis_on_loan_or_electronic">Octopus pinjaman/elektronik · had -HK$50</string>
     <string name="card_name_format">%1$s · %2$s</string>
     <string name="card_selection_format">%1$s — %2$s</string>
     <string name="how_to_scan">Cara mengimbas</string>
